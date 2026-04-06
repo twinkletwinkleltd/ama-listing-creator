@@ -49,6 +49,17 @@ export default function ListingsClient({ listings, styles }: Props) {
     } catch { setSelectedDraft(null) }
   }, [selected?.sku])
 
+  const filtered = listings.filter((l) => {
+    const matchesStyle = activeStyle === 'All' || l.parentSku === activeStyle
+    const q = search.toLowerCase()
+    const matchesSearch =
+      !q ||
+      l.sku.toLowerCase().includes(q) ||
+      l.itemName.toLowerCase().includes(q) ||
+      l.color.toLowerCase().includes(q)
+    return matchesStyle && matchesSearch
+  })
+
   // 监听工具栏全局导出事件
   useEffect(() => {
     const handler = () => {
@@ -72,17 +83,6 @@ export default function ListingsClient({ listings, styles }: Props) {
     window.addEventListener('toolbar-export-all', handler)
     return () => window.removeEventListener('toolbar-export-all', handler)
   }, [filtered])
-
-  const filtered = listings.filter((l) => {
-    const matchesStyle = activeStyle === 'All' || l.parentSku === activeStyle
-    const q = search.toLowerCase()
-    const matchesSearch =
-      !q ||
-      l.sku.toLowerCase().includes(q) ||
-      l.itemName.toLowerCase().includes(q) ||
-      l.color.toLowerCase().includes(q)
-    return matchesStyle && matchesSearch
-  })
 
   return (
     <div style={{ display: 'flex', flex: 1, gap: '6px', minWidth: 0, overflow: 'hidden' }}>
