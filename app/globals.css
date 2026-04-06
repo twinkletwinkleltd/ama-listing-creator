@@ -1,39 +1,243 @@
 @import "tailwindcss";
+@import "98.css/dist/98.css";
 
-:root {
-  --bg-main: #f0f2f5;
-  --bg-card: #ffffff;
-  --nav-bg: #1e2a3a;
-  --nav-text: #c8d4e0;
-  --primary: #0078d4;
-  --primary-hover: #106ebe;
-  --required: #d13438;
-  --suggested: #f7a800;
-  --optional: #6b7a8d;
-  --border: #d0d7de;
-  --zebra-odd: #f6f8fa;
-  --zebra-even: #ffffff;
-  --text-main: #1a2332;
-  --text-sub: #6b7a8d;
-  --success: #107c10;
-  --error: #d13438;
-}
-
+/* ── Desktop background ── */
 body {
-  background: var(--bg-main);
-  color: var(--text-main);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-}
-
-code, .font-mono, [class*="font-mono"] {
-  font-family: 'Cascadia Code', 'Consolas', monospace;
-}
-
-.nav-link:hover {
-  background: rgba(255,255,255,0.08) !important;
-  color: #c8d4e0 !important;
-}
-
-* {
+  background: #008080;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: 11px;
+  margin: 0;
+  padding: 8px;
+  min-height: 100vh;
   box-sizing: border-box;
+}
+
+/* ── App window fills viewport ── */
+.app-window {
+  width: 100%;
+  min-height: calc(100vh - 16px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Toolbar ── */
+.win98-toolbar {
+  background: #d4d0c8;
+  border-bottom: 1px solid #808080;
+  padding: 3px 6px;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.win98-toolbar .sep {
+  width: 1px;
+  background: #808080;
+  height: 22px;
+  border-right: 1px solid #ffffff;
+  margin: 0 3px;
+}
+.win98-toolbar label {
+  font-size: 11px;
+  margin-right: 2px;
+  white-space: nowrap;
+}
+.win98-toolbar input[type="text"],
+.win98-toolbar select {
+  font-size: 11px;
+  height: 21px;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+}
+.win98-toolbar input[type="text"] { width: 160px; }
+.win98-toolbar button { font-size: 11px; }
+.win98-toolbar button.active {
+  border-top-color: #808080;
+  border-left-color: #808080;
+  border-right-color: #ffffff;
+  border-bottom-color: #ffffff;
+}
+
+/* ── Page content area ── */
+.win98-content {
+  flex: 1;
+  padding: 6px;
+  background: #d4d0c8;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Status bar ── */
+.win98-statusbar {
+  background: #d4d0c8;
+  border-top: 1px solid #808080;
+  padding: 2px 8px;
+  display: flex;
+  gap: 0;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.win98-statusbar .pane {
+  border: 1px inset #d4d0c8;
+  padding: 1px 8px;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+/* ── ListView table ── */
+.win98-listview {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  font-size: 11px;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  border: 2px inset #d4d0c8;
+}
+.win98-listview th {
+  background: #d4d0c8;
+  padding: 2px 6px;
+  text-align: left;
+  font-weight: normal;
+  border-right: 1px solid #808080;
+  border-bottom: 2px solid #808080;
+  white-space: nowrap;
+  font-size: 11px;
+  cursor: default;
+}
+.win98-listview td {
+  padding: 1px 6px;
+  border-bottom: 1px solid #e8e8e8;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.win98-listview tr.selected td {
+  background: #000080;
+  color: #ffffff;
+}
+.win98-listview tr.selected a {
+  color: #ffffff;
+}
+.win98-listview tbody tr:hover:not(.selected) td {
+  background: #d0e4ff;
+  cursor: pointer;
+}
+
+/* ── Editor field rows ── */
+.win98-field-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 6px;
+}
+.win98-field-row label {
+  width: 110px;
+  font-size: 11px;
+  text-align: right;
+  flex-shrink: 0;
+  padding-top: 3px;
+  color: #000000;
+}
+.win98-field-row input[type="text"],
+.win98-field-row select,
+.win98-field-row textarea {
+  flex: 1;
+  font-size: 11px;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+}
+.win98-field-row textarea {
+  height: 46px;
+  resize: vertical;
+}
+
+/* ── Progress bar ── */
+.win98-progress {
+  height: 16px;
+  background: #ffffff;
+  border: 2px inset #d4d0c8;
+  overflow: hidden;
+  margin-top: 3px;
+}
+.win98-progress-fill {
+  height: 100%;
+  background: #000080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 10px;
+  transition: width 0.2s;
+}
+
+/* ── Image card grid ── */
+.win98-img-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+.win98-img-card { width: 140px; }
+.win98-img-card fieldset { padding: 4px; }
+.win98-img-card legend { font-size: 10px; }
+.win98-img-thumb {
+  width: 100%;
+  height: 80px;
+  background: #ffffff;
+  border: 2px inset #d4d0c8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3px;
+  overflow: hidden;
+}
+.win98-img-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.win98-img-sku {
+  font-size: 9px;
+  font-family: 'Courier New', monospace;
+  color: #444444;
+  margin-bottom: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.win98-img-actions { display: flex; gap: 2px; }
+.win98-img-actions button { font-size: 10px; flex: 1; padding: 1px 2px; }
+
+/* ── Images page internal sidebar ── */
+.win98-img-sidebar {
+  width: 110px;
+  flex-shrink: 0;
+  border-right: 2px inset #d4d0c8;
+  background: #d4d0c8;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px;
+  margin-right: 6px;
+}
+.win98-img-sidebar button {
+  width: 100%;
+  text-align: left;
+  font-size: 11px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.win98-img-sidebar button.active {
+  background: #000080;
+  color: #ffffff;
+  border-top-color: #808080;
+  border-left-color: #808080;
+  border-right-color: #ffffff;
+  border-bottom-color: #ffffff;
+}
+.win98-img-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #d4d0c8;
+}
+
+/* monospace SKU text */
+.sku-mono {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
 }
