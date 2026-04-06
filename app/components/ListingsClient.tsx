@@ -49,6 +49,30 @@ export default function ListingsClient({ listings, styles }: Props) {
     } catch { setSelectedDraft(null) }
   }, [selected?.sku])
 
+  // 监听工具栏全局导出事件
+  useEffect(() => {
+    const handler = () => {
+      const rows = filtered
+      const header = 'SKU,款式,颜色,度数,价格,库存,主图'
+      const csv = [header, ...rows.map((l) =>
+        [l.sku, l.parentSku, l.color, l.strength, l.price, l.quantity, l.mainImage]
+          .map((v) => `"${(v ?? '').replace(/"/g, '""')}"`)
+          .join(',')
+      )].join('\r\n')
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `listings-export-${Date.now()}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }
+    window.addEventListener('toolbar-export-all', handler)
+    return () => window.removeEventListener('toolbar-export-all', handler)
+  }, [filtered])
+
   const filtered = listings.filter((l) => {
     const matchesStyle = activeStyle === 'All' || l.parentSku === activeStyle
     const q = search.toLowerCase()

@@ -31,10 +31,13 @@ export default function AppToolbar() {
 
       <div className="sep" />
 
-      {/* Quick action */}
+      {/* Quick actions */}
       <Link href="/editor">
         <button>＋ 新建</button>
       </Link>
+      <button onClick={() => window.dispatchEvent(new CustomEvent('toolbar-export-all'))}>
+        ⬆ 导出 CSV
+      </button>
 
       <div className="sep" />
 
