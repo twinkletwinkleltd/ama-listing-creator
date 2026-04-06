@@ -256,6 +256,67 @@ const inputCls = 'border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-
 const selectCls = inputCls
 const textareaCls = `${inputCls} resize-none`
 
+// ─── Tooltip & Reference Field Components ────────────────────────────
+function Tooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <span style={{ position: 'relative', display: 'inline-block' }}>
+      <span
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        style={{ cursor: 'help', color: '#6b7a8d', fontSize: '11px', border: '1px solid #d0d7de', borderRadius: '3px', padding: '0 4px', userSelect: 'none' }}
+      >?</span>
+      {show && (
+        <span style={{
+          position: 'absolute', left: '100%', top: '-4px', marginLeft: '6px',
+          background: '#1a2332', color: '#fff', fontSize: '11px', padding: '4px 8px',
+          borderRadius: '3px', zIndex: 100, maxWidth: '200px',
+          whiteSpace: 'normal', width: '160px', lineHeight: '1.4'
+        }}>{text}</span>
+      )}
+    </span>
+  )
+}
+
+function RefField({ label, col, tooltip, placeholder }: { label: string; col: number; tooltip?: string; placeholder?: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: '1px solid #f0f2f5' }}>
+      <span style={{ fontSize: '10px', color: '#6b7a8d', width: '48px', flexShrink: 0, fontFamily: 'Consolas, monospace' }}>Col {col}</span>
+      <span style={{ fontSize: '12px', color: '#1a2332', flex: 1, minWidth: '120px' }}>{label}</span>
+      <input
+        type="text"
+        placeholder={placeholder || ''}
+        style={{
+          border: '1px solid #d0d7de', borderRadius: '3px', padding: '2px 6px',
+          fontSize: '12px', width: '120px', color: '#1a2332', background: '#fafbfc'
+        }}
+      />
+      {tooltip && <Tooltip text={tooltip} />}
+    </div>
+  )
+}
+
+function RefGroup({ title, children, defaultOpen }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen ?? false)
+  return (
+    <div style={{ border: '1px solid #d0d7de', borderRadius: '4px', marginBottom: '8px', overflow: 'hidden' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%', textAlign: 'left', padding: '6px 10px',
+          background: open ? '#f0f2f5' : '#fafbfc', border: 'none', cursor: 'pointer',
+          fontSize: '12px', fontWeight: 600, color: '#1a2332', display: 'flex', justifyContent: 'space-between'
+        }}
+      >
+        <span>{title}</span>
+        <span style={{ color: '#6b7a8d' }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && <div style={{ padding: '8px 10px' }}>{children}</div>}
+    </div>
+  )
+}
+
 // ─── Main EditorClient ────────────────────────────────────────────────
 export default function EditorClient({ initialListing, sku }: Props) {
   const buildInitialForm = (): FormData => {
@@ -279,6 +340,7 @@ export default function EditorClient({ initialListing, sku }: Props) {
 
   const [form, setForm] = useState<FormData>(buildInitialForm)
   const [activeTab, setActiveTab] = useState(0)
+  const [showFullRef, setShowFullRef] = useState(false)
 
   // Overlay localStorage draft on mount
   useEffect(() => {
@@ -667,6 +729,134 @@ export default function EditorClient({ initialListing, sku }: Props) {
                 {(['image2','image3','image4','image5','image6','image7','image8'] as const).map((key, i) => (
                   <ImageInput key={key} label={`Image URL ${i + 2}`} value={form[key]} onChange={(v) => set(key, v)} />
                 ))}
+              </div>
+
+              {/* ── 完整字段参考 ── */}
+              <div style={{ border: '1px solid #d0d7de', borderRadius: '4px', background: '#fff' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowFullRef(!showFullRef)}
+                  style={{
+                    width: '100%', textAlign: 'left', padding: '10px 14px',
+                    background: '#fafbfc', border: 'none', cursor: 'pointer',
+                    fontSize: '13px', fontWeight: 600, color: '#1a2332', display: 'flex', justifyContent: 'space-between',
+                    borderRadius: '4px'
+                  }}
+                >
+                  <span>📋 完整字段参考（293列）</span>
+                  <span style={{ color: '#6b7a8d' }}>{showFullRef ? '▲ 折叠' : '▼ 展开'}</span>
+                </button>
+
+                {showFullRef && (
+                  <div style={{ padding: '12px 14px' }}>
+                    <RefGroup title="【定价与库存】" defaultOpen={true}>
+                      <RefField label="List Price with Tax" col={20} tooltip="含税建议零售价" />
+                      <RefField label="Sale Price GBP" col={52} tooltip="促销价格（英镑）" />
+                      <RefField label="Sale Start Date" col={53} tooltip="促销开始日期，格式 YYYY-MM-DD" placeholder="2025-01-01" />
+                      <RefField label="Sale End Date" col={54} tooltip="促销结束日期，格式 YYYY-MM-DD" placeholder="2025-12-31" />
+                      <RefField label="Minimum Seller Allowed Price" col={50} tooltip="卖家允许的最低价格" />
+                      <RefField label="Maximum Seller Allowed Price" col={51} tooltip="卖家允许的最高价格" />
+                      <RefField label="Merchant Shipping Group" col={73} tooltip="配送组名称" />
+                      <RefField label="Handling Time (days)" col={45} tooltip="处理时间（天），0表示当天发货" placeholder="1" />
+                    </RefGroup>
+
+                    <RefGroup title="【B2B定价】">
+                      <RefField label="Your Price GBP B2B" col={57} tooltip="企业客户专属价格" />
+                      <RefField label="Quantity Price Type" col={62} tooltip="数量折扣类型" />
+                      <RefField label="Quantity Threshold Level 1" col={63} tooltip="数量折扣门槛1" />
+                      <RefField label="Quantity Price Level 1" col={64} tooltip="数量折扣价格1" />
+                      <RefField label="Quantity Threshold Level 2" col={65} tooltip="数量折扣门槛2" />
+                      <RefField label="Quantity Price Level 2" col={66} tooltip="数量折扣价格2" />
+                      <RefField label="Quantity Threshold Level 3" col={67} tooltip="数量折扣门槛3" />
+                      <RefField label="Quantity Price Level 3" col={68} tooltip="数量折扣价格3" />
+                      <RefField label="Quantity Threshold Level 4" col={69} tooltip="数量折扣门槛4" />
+                      <RefField label="Quantity Price Level 4" col={70} tooltip="数量折扣价格4" />
+                      <RefField label="Quantity Threshold Level 5" col={71} tooltip="数量折扣门槛5" />
+                      <RefField label="Quantity Price Level 5" col={72} tooltip="数量折扣价格5" />
+                    </RefGroup>
+
+                    <RefGroup title="【产品属性】" defaultOpen={true}>
+                      <RefField label="Style" col={81} tooltip="产品风格，如Classic/Sport" />
+                      <RefField label="Age Range Description" col={84} tooltip="适用年龄段，如Adult" />
+                      <RefField label="Item Type Name" col={90} tooltip="产品类型名称" />
+                      <RefField label="Ring Size" col={93} tooltip="戒指尺寸，眼镜类不适用" />
+                      <RefField label="Size" col={94} tooltip="尺寸，如One Size" />
+                      <RefField label="Item Diameter" col={95} tooltip="物品直径" />
+                      <RefField label="Item Diameter Unit" col={96} tooltip="直径单位，如mm" placeholder="mm" />
+                      <RefField label="Part Number" col={97} tooltip="零件编号/型号" />
+                      <RefField label="Configuration" col={118} tooltip="产品配置说明" />
+                      <RefField label="Cylinder Axis" col={119} tooltip="散光轴向，老花镜通常不填" />
+                      <RefField label="Lens Correction Type 1" col={153} tooltip="镜片矫正类型1" />
+                      <RefField label="Lens Correction Type 2" col={154} tooltip="镜片矫正类型2" />
+                      <RefField label="Lens Correction Type 3" col={155} tooltip="镜片矫正类型3" />
+                      <RefField label="Lens Correction Type 4" col={156} tooltip="镜片矫正类型4" />
+                      <RefField label="Lens Correction Type 5" col={157} tooltip="镜片矫正类型5" />
+                      <RefField label="Optical Power" col={158} tooltip="光学度数" />
+                      <RefField label="Base Curve Radius" col={151} tooltip="基弧半径，隐形眼镜用" />
+                      <RefField label="Base Curve Radius Unit" col={152} tooltip="基弧单位，如mm" placeholder="mm" />
+                      <RefField label="Pattern" col={140} tooltip="图案/花纹" />
+                      <RefField label="Unit Count" col={141} tooltip="单位数量" />
+                      <RefField label="Unit Count Type" col={142} tooltip="单位类型，如Count/Pair" />
+                      <RefField label="Scent 1" col={146} tooltip="香气1，眼镜类不适用，留空即可" />
+                      <RefField label="Scent 2" col={147} tooltip="香气2，眼镜类不适用，留空即可" />
+                      <RefField label="Scent 3" col={148} tooltip="香气3，眼镜类不适用，留空即可" />
+                      <RefField label="Scent 4" col={149} tooltip="香气4，眼镜类不适用，留空即可" />
+                      <RefField label="Scent 5" col={150} tooltip="香气5，眼镜类不适用，留空即可" />
+                    </RefGroup>
+
+                    <RefGroup title="【包装信息】" defaultOpen={true}>
+                      <RefField label="Item Package Length" col={251} tooltip="包装长度" />
+                      <RefField label="Item Package Length Unit" col={252} tooltip="包装长度单位" placeholder="mm" />
+                      <RefField label="Item Package Width" col={253} tooltip="包装宽度" />
+                      <RefField label="Item Package Width Unit" col={254} tooltip="包装宽度单位" placeholder="mm" />
+                      <RefField label="Item Package Height" col={255} tooltip="包装高度" />
+                      <RefField label="Item Package Height Unit" col={256} tooltip="包装高度单位" placeholder="mm" />
+                      <RefField label="Item Package Weight" col={257} tooltip="包装重量" />
+                      <RefField label="Item Package Weight Unit" col={258} tooltip="包装重量单位" placeholder="g" />
+                      <RefField label="Item Weight" col={193} tooltip="产品重量（不含包装）" />
+                      <RefField label="Item Weight Unit" col={194} tooltip="重量单位" placeholder="g" />
+                    </RefGroup>
+
+                    <RefGroup title="【合规信息】">
+                      <RefField label="Country of Origin" col={163} tooltip="原产地，已在上方填写则可跳过" placeholder="CN" />
+                      <RefField label="Are batteries required" col={164} tooltip="是否需要电池，眼镜填false" placeholder="false" />
+                      <RefField label="Are batteries included" col={165} tooltip="是否含电池，眼镜填false" placeholder="false" />
+                      <RefField label="Dangerous Goods Regulations 1" col={180} tooltip="危险品法规1" />
+                      <RefField label="Dangerous Goods Regulations 2" col={181} tooltip="危险品法规2" />
+                      <RefField label="Dangerous Goods Regulations 3" col={182} tooltip="危险品法规3" />
+                      <RefField label="Dangerous Goods Regulations 4" col={183} tooltip="危险品法规4" />
+                      <RefField label="Dangerous Goods Regulations 5" col={184} tooltip="危险品法规5" />
+                      <RefField label="GPSR Safety Attestation" col={222} tooltip="欧盟产品安全法规认证" />
+                      <RefField label="Manufacturer Email" col={223} tooltip="制造商电子邮件" />
+                      <RefField label="Medical Device Sales Channel" col={201} tooltip="医疗器械销售渠道" />
+                      <RefField label="Responsible Person Email" col={202} tooltip="欧盟责任人邮箱" />
+                      <RefField label="Ships Globally" col={225} tooltip="是否全球配送" />
+                      <RefField label="Is OEM Sourced Product" col={235} tooltip="是否OEM代工产品" />
+                      <RefField label="Is Product Subject To Age Restrictions" col={195} tooltip="是否有年龄限制" placeholder="false" />
+                    </RefGroup>
+
+                    <RefGroup title="【EPR包装信息 - 欧盟合规】">
+                      <RefField label="EPR Product Packaging Main Material 1" col={259} tooltip="主要包装材料1，如Plastic/Paper" />
+                      <RefField label="EPR Granular Material 1" col={260} tooltip="细分材料1" />
+                      <RefField label="EPR Granular Material 2" col={261} tooltip="细分材料2" />
+                      <RefField label="EPR Granular Material 3" col={262} tooltip="细分材料3" />
+                      <RefField label="EPR Granular Material 4" col={263} tooltip="细分材料4" />
+                      <RefField label="EPR Granular Material 5" col={264} tooltip="细分材料5" />
+                      <RefField label="EPR Granular Material 6" col={265} tooltip="细分材料6" />
+                      <RefField label="EPR Granular Material 7" col={266} tooltip="细分材料7" />
+                      <RefField label="EPR Granular Material 8" col={267} tooltip="细分材料8" />
+                      <RefField label="EPR Product Packaging Main Material 2" col={276} tooltip="主要包装材料2" />
+                      <RefField label="EPR Granular Material 9" col={277} tooltip="细分材料9" />
+                      <RefField label="EPR Granular Material 10" col={278} tooltip="细分材料10" />
+                      <RefField label="EPR Granular Material 11" col={279} tooltip="细分材料11" />
+                      <RefField label="EPR Granular Material 12" col={280} tooltip="细分材料12" />
+                      <RefField label="EPR Granular Material 13" col={281} tooltip="细分材料13" />
+                      <RefField label="EPR Granular Material 14" col={282} tooltip="细分材料14" />
+                      <RefField label="EPR Granular Material 15" col={283} tooltip="细分材料15" />
+                      <RefField label="EPR Granular Material 16" col={284} tooltip="细分材料16" />
+                    </RefGroup>
+                  </div>
+                )}
               </div>
             </div>
           )}

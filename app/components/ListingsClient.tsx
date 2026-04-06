@@ -121,6 +121,7 @@ export default function ListingsClient({ listings, styles }: Props) {
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">度数</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">价格</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">库存</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">图片</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -155,6 +156,11 @@ export default function ListingsClient({ listings, styles }: Props) {
                   <td className="px-4 py-3 font-mono text-xs text-gray-600">{listing.strength || '—'}</td>
                   <td className="px-4 py-3 text-gray-800">{listing.price ? `£${listing.price}` : '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{listing.quantity || '—'}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span title={listing.mainImage ? listing.mainImage : '无主图'}>
+                      {listing.mainImage ? '🟢' : '🔴'}
+                    </span>
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/editor?sku=${listing.sku}`}
@@ -168,7 +174,7 @@ export default function ListingsClient({ listings, styles }: Props) {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400 text-sm">
+                  <td colSpan={9} className="px-4 py-8 text-center text-gray-400 text-sm">
                     No listings found.
                   </td>
                 </tr>
@@ -284,12 +290,22 @@ export default function ListingsClient({ listings, styles }: Props) {
 
             <hr className="border-gray-100" />
 
-            <Link
-              href={`/editor?sku=${selected.sku}`}
-              className="bg-blue-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors text-center block"
-            >
-              Open in Editor
-            </Link>
+            <div className="flex flex-col gap-2">
+              <Link
+                href={`/editor?sku=${selected.sku}`}
+                className="text-white rounded py-2 text-sm font-medium text-center block transition-colors"
+                style={{ backgroundColor: '#0078d4', border: '1px solid #005a9e' }}
+              >
+                前往编辑
+              </Link>
+              <Link
+                href="/images"
+                className="rounded py-2 text-sm font-medium text-center block transition-colors border border-gray-200 hover:bg-gray-50"
+                style={{ color: '#1a2332' }}
+              >
+                查看图片
+              </Link>
+            </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center flex-1 gap-2 text-center">

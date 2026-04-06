@@ -1,17 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Amazon Listing Creator",
@@ -24,29 +13,47 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6">
-          <a
-            href="https://ordercleaner.twinkletwinkle.uk"
-            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
+    <html lang="en" className="h-full">
+      <body className="min-h-full flex flex-col" style={{ fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", background: '#f0f2f5', color: '#1a2332' }}>
+        <nav style={{ background: '#1e2a3a', borderBottom: '1px solid #0d1a28' }} className="px-4 py-2 flex items-center gap-0">
+          {/* Back button */}
+          <button
+            onClick={undefined}
+            id="nav-back-btn"
+            style={{ color: '#6b8099', fontSize: '11px', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '3px' }}
+            title="返回上一层"
           >
-            &larr; Portal
-          </a>
-          <span className="text-gray-200">|</span>
-          <span className="text-sm font-semibold text-gray-800">Amazon Listing Creator</span>
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
-            Listings
-          </Link>
-          <Link href="/editor" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
-            Editor
-          </Link>
-          <Link href="/image-guide" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
-            📷 图片指南
-          </Link>
+            ↑
+          </button>
+          <script dangerouslySetInnerHTML={{ __html: `
+            document.getElementById('nav-back-btn').addEventListener('click', function() {
+              if (window.history.length > 1) { window.history.back(); }
+              else { window.location.href = 'https://ordercleaner.twinkletwinkle.uk'; }
+            });
+          `}} />
+
+          <div style={{ width: '1px', height: '16px', background: '#2d3f52', margin: '0 8px' }} />
+
+          {/* Title - non-clickable */}
+          <span style={{ color: '#c8d4e0', fontSize: '13px', fontWeight: 600, marginRight: '16px' }}>
+            Amazon Listing Creator
+          </span>
+
+          {/* Nav links */}
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <Link href="/" style={{ color: '#8fa8c0', fontSize: '13px', padding: '4px 12px', borderRadius: '3px', textDecoration: 'none' }}
+              className="nav-link">Listings</Link>
+            <Link href="/editor" style={{ color: '#8fa8c0', fontSize: '13px', padding: '4px 12px', borderRadius: '3px', textDecoration: 'none' }}
+              className="nav-link">Editor</Link>
+            <Link href="/images" style={{ color: '#8fa8c0', fontSize: '13px', padding: '4px 12px', borderRadius: '3px', textDecoration: 'none' }}
+              className="nav-link">Images</Link>
+          </div>
+
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Version */}
+          <span style={{ color: '#4a6278', fontSize: '11px' }}>v0.1-beta</span>
         </nav>
         {children}
       </body>
