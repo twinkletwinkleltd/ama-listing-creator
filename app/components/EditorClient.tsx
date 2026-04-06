@@ -333,164 +333,123 @@ export default function EditorClient({ initialListing, sku }: Props) {
         </div>
 
         {/* ── Fieldset 1: Required ── */}
-        <fieldset>
-          <legend>* 必填 — 基本信息</legend>
-          <div className="win98-fg-2">
-
-            {/* Item Name — full width */}
-            <FieldLabel text="Item Name" type="required" />
-            <div className="fg-span-rest">
-              <input type="text" value={form.itemName} onChange={(e) => setForm((f) => ({ ...f, itemName: e.target.value }))} style={{ flex: 1, fontSize: '11px' }} />
+        {(() => {
+          const R: React.CSSProperties = { display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px', flexWrap:'wrap' }
+          const C: React.CSSProperties = { display:'flex', alignItems:'center', gap:'4px' }
+          const F: React.CSSProperties = { display:'flex', alignItems:'center', gap:'4px', marginBottom:'4px' }
+          const lR: React.CSSProperties = { fontSize:'11px', color:'#cc0000', whiteSpace:'nowrap', flexShrink:0 }
+          const lO: React.CSSProperties = { fontSize:'11px', color:'#000', whiteSpace:'nowrap', flexShrink:0 }
+          return (
+          <fieldset>
+            <legend>* 必填 — 基本信息</legend>
+            <div style={F}>
+              <label style={lR}>* Item Name</label>
+              <input type="text" value={form.itemName} onChange={(e) => setForm((f) => ({ ...f, itemName: e.target.value }))} style={{ width:'320px', fontSize:'11px' }} />
               <CharCount value={form.itemName} max={200} />
             </div>
-
-            {/* Brand Name | SKU */}
-            <FieldLabel text="Brand Name" type="required" />
-            <input type="text" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} style={{ fontSize: '11px', width: '100%' }} />
-            <FieldLabel text="SKU" />
-            <span style={{ fontSize: '10px', fontFamily: 'Courier New, monospace', color: '#808080', padding: '1px 4px', background: '#d4d0c8', border: '2px inset #d4d0c8', minHeight: '19px', display: 'flex', alignItems: 'center' }}>{sku || '—'}</span>
-
-            {/* Price | Quantity */}
-            <FieldLabel text="Price (£)" type="required" />
-            <input type="text" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} style={{ width: '80px', fontSize: '11px' }} />
-            <FieldLabel text="Quantity" type="required" />
-            <input type="text" value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))} style={{ width: '60px', fontSize: '11px' }} />
-
-            {/* Listing Action | Parentage */}
-            <FieldLabel text="Listing Action" type="required" />
-            <select value={form.listingAction} onChange={(e) => setForm((f) => ({ ...f, listingAction: e.target.value }))} style={{ fontSize: '11px' }}>
-              <option>Create new listing</option>
-              <option>Update</option>
-              <option>Delete</option>
-            </select>
-            <FieldLabel text="Parentage" />
-            <select value={form.parentage} onChange={(e) => setForm((f) => ({ ...f, parentage: e.target.value }))} style={{ fontSize: '11px' }}>
-              <option value="">—</option>
-              <option value="parent">Parent</option>
-              <option value="child">Child</option>
-            </select>
-
-            {/* Parent SKU — full width */}
-            <FieldLabel text="Parent SKU" />
-            <div className="fg-span-rest">
-              <input type="text" value={form.parentSku} onChange={(e) => setForm((f) => ({ ...f, parentSku: e.target.value }))} style={{ flex: 1, fontSize: '11px' }} />
+            <div style={R}>
+              <span style={C}><label style={lR}>* Brand Name</label><input type="text" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} style={{ width:'160px', fontSize:'11px' }} /></span>
+              <span style={C}><label style={lO}>SKU</label><span style={{ fontSize:'10px', fontFamily:'Courier New,monospace', color:'#808080', padding:'1px 4px', background:'#d4d0c8', border:'2px inset #d4d0c8' }}>{sku || '—'}</span></span>
             </div>
-
-            {/* Variation Theme — full width */}
-            <FieldLabel text="Variation Theme" />
-            <div className="fg-span-rest">
-              <input type="text" value={form.variationTheme} onChange={(e) => setForm((f) => ({ ...f, variationTheme: e.target.value }))} style={{ flex: 1, fontSize: '11px' }} />
+            <div style={R}>
+              <span style={C}><label style={lR}>* Price (£)</label><input type="text" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} style={{ width:'80px', fontSize:'11px' }} /></span>
+              <span style={C}><label style={lR}>* Quantity</label><input type="text" value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))} style={{ width:'60px', fontSize:'11px' }} /></span>
+              <span style={C}><label style={lR}>* Listing Action</label>
+                <select value={form.listingAction} onChange={(e) => setForm((f) => ({ ...f, listingAction: e.target.value }))} style={{ fontSize:'11px' }}>
+                  <option>Create new listing</option><option>Update</option><option>Delete</option>
+                </select>
+              </span>
+              <span style={C}><label style={lO}>Parentage</label>
+                <select value={form.parentage} onChange={(e) => setForm((f) => ({ ...f, parentage: e.target.value }))} style={{ fontSize:'11px' }}>
+                  <option value="">—</option><option value="parent">Parent</option><option value="child">Child</option>
+                </select>
+              </span>
             </div>
-          </div>
-        </fieldset>
+            <div style={F}><label style={lO}>Parent SKU</label><input type="text" value={form.parentSku} onChange={(e) => setForm((f) => ({ ...f, parentSku: e.target.value }))} style={{ width:'280px', fontSize:'11px' }} /></div>
+            <div style={F}><label style={lO}>Variation Theme</label><input type="text" value={form.variationTheme} onChange={(e) => setForm((f) => ({ ...f, variationTheme: e.target.value }))} style={{ width:'280px', fontSize:'11px' }} /></div>
+          </fieldset>
+          )
+        })()}
 
         {/* ── Fieldset 2: Suggested ── */}
-        <fieldset>
-          <legend>建议 — 卖点内容</legend>
-          <div className="win98-fg-2">
-
-            {/* Bullets 1–5, full width each */}
+        {(() => {
+          const F: React.CSSProperties = { display:'flex', alignItems:'flex-start', gap:'4px', marginBottom:'4px' }
+          const lS: React.CSSProperties = { fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap', flexShrink:0, paddingTop:'3px' }
+          const lO: React.CSSProperties = { fontSize:'11px', color:'#000', whiteSpace:'nowrap', flexShrink:0, paddingTop:'3px' }
+          const TA: React.CSSProperties = { width:'320px', fontSize:'11px', fontFamily:"'Pixelated MS Sans Serif','MS Sans Serif',Tahoma,sans-serif", height:'40px', resize:'vertical' }
+          return (
+          <fieldset>
+            <legend>建议 — 卖点内容</legend>
             {([
-              { key: 'bullet1' as const, label: 'Bullet 1', max: 200 },
-              { key: 'bullet2' as const, label: 'Bullet 2', max: 200 },
-              { key: 'bullet3' as const, label: 'Bullet 3', max: 200 },
-              { key: 'bullet4' as const, label: 'Bullet 4', max: 200 },
-              { key: 'bullet5' as const, label: 'Bullet 5', max: 200 },
+              { key:'bullet1' as const, label:'Bullet 1', max:200 },
+              { key:'bullet2' as const, label:'Bullet 2', max:200 },
+              { key:'bullet3' as const, label:'Bullet 3', max:200 },
+              { key:'bullet4' as const, label:'Bullet 4', max:200 },
+              { key:'bullet5' as const, label:'Bullet 5', max:200 },
             ]).map(({ key, label, max }) => (
-              <Fragment key={key}>
-                <FieldLabel text={label} type="suggested" />
-                <div className="fg-span-rest">
-                  <textarea value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ flex: 1, fontSize: '11px', fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif", height: '40px', resize: 'vertical' }} />
-                  <CharCount value={form[key]} max={max} />
-                </div>
-              </Fragment>
+              <div key={key} style={F}>
+                <label style={lS}>{label}</label>
+                <textarea value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={TA} />
+                <CharCount value={form[key]} max={max} />
+              </div>
             ))}
-
-            {/* Description — full width */}
-            <FieldLabel text="Description" type="suggested" />
-            <div className="fg-span-rest">
-              <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} style={{ flex: 1, fontSize: '11px', fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif", height: '56px', resize: 'vertical' }} />
-              <CharCount value={form.description} max={2000} />
+            <div style={F}><label style={lS}>Description</label><textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} style={{ ...TA, height:'56px' }} /><CharCount value={form.description} max={2000} /></div>
+            <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'4px' }}><label style={{ ...lS, paddingTop:0 }}>Keywords</label><input type="text" value={form.keywords} onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))} style={{ width:'320px', fontSize:'11px' }} /><CharCount value={form.keywords} max={250} /></div>
+            <div style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px', flexWrap:'wrap' }}>
+              <span style={{ display:'flex', alignItems:'center', gap:'4px' }}><label style={{ fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap' }}>Style</label><input type="text" value={form.style} onChange={(e) => setForm((f) => ({ ...f, style: e.target.value }))} style={{ width:'100px', fontSize:'11px' }} /></span>
+              <span style={{ display:'flex', alignItems:'center', gap:'4px' }}><label style={{ fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap' }}>Department</label><select value={form.department} onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))} style={{ fontSize:'11px' }}><option>Unisex Adults</option><option>Men</option><option>Women</option></select></span>
+              <span style={{ display:'flex', alignItems:'center', gap:'4px' }}><label style={{ fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap' }}>Gender</label><select value={form.targetGender} onChange={(e) => setForm((f) => ({ ...f, targetGender: e.target.value }))} style={{ fontSize:'11px' }}><option>Unisex</option><option>Male</option><option>Female</option></select></span>
             </div>
-
-            {/* Keywords — full width */}
-            <FieldLabel text="Keywords" type="suggested" />
-            <div className="fg-span-rest">
-              <input type="text" value={form.keywords} onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))} style={{ flex: 1, fontSize: '11px' }} />
-              <CharCount value={form.keywords} max={250} />
-            </div>
-
-            {/* Style | Department | Gender — one row */}
-            <div className="fg-span-all">
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <label style={{ fontSize: '11px', color: '#b37a00', whiteSpace: 'nowrap' }}>Style</label>
-                <input type="text" value={form.style} onChange={(e) => setForm((f) => ({ ...f, style: e.target.value }))} style={{ width: '100px', fontSize: '11px' }} />
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <label style={{ fontSize: '11px', color: '#b37a00', whiteSpace: 'nowrap' }}>Department</label>
-                <select value={form.department} onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))} style={{ fontSize: '11px' }}>
-                  <option>Unisex Adults</option>
-                  <option>Men</option>
-                  <option>Women</option>
-                </select>
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <label style={{ fontSize: '11px', color: '#b37a00', whiteSpace: 'nowrap' }}>Gender</label>
-                <select value={form.targetGender} onChange={(e) => setForm((f) => ({ ...f, targetGender: e.target.value }))} style={{ fontSize: '11px' }}>
-                  <option>Unisex</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                </select>
-              </span>
-            </div>
-          </div>
-        </fieldset>
+          </fieldset>
+          )
+        })()}
 
         {/* ── Fieldset 3: Specs & Images ── */}
-        <fieldset>
-          <legend>规格 — 规格图片</legend>
-
-          {/* Spec fields — 3 per row */}
-          <div className="win98-fg-3">
-            {([
-              { key: 'colorMap' as const,       label: 'Color Map' },
-              { key: 'color' as const,           label: 'Color' },
-              { key: 'strength' as const,        label: 'Strength' },
-              { key: 'frameMaterial' as const,   label: 'Frame Mat.' },
-              { key: 'frameType' as const,       label: 'Frame Type' },
-              { key: 'itemShape' as const,       label: 'Item Shape' },
-              { key: 'numberOfItems' as const,   label: 'No. Items' },
-              { key: 'packageQuantity' as const, label: 'Pkg Qty' },
-              { key: 'armLength' as const,       label: 'Arm Length' },
-              { key: 'bridgeWidth' as const,     label: 'Bridge Width' },
-              { key: 'itemWeight' as const,      label: 'Item Weight' },
-            ]).map(({ key, label }) => (
-              <Fragment key={key}>
-                <FieldLabel text={label} />
-                <input type="text" value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ fontSize: '11px' }} />
-              </Fragment>
+        {(() => {
+          const lO: React.CSSProperties = { fontSize:'11px', color:'#000', whiteSpace:'nowrap', flexShrink:0 }
+          const lR: React.CSSProperties = { fontSize:'11px', color:'#cc0000', whiteSpace:'nowrap', flexShrink:0 }
+          const specFields: { key: keyof FormData; label: string }[] = [
+            { key:'colorMap', label:'Color Map' }, { key:'color', label:'Color' }, { key:'strength', label:'Strength' },
+            { key:'frameMaterial', label:'Frame Mat.' }, { key:'frameType', label:'Frame Type' }, { key:'itemShape', label:'Item Shape' },
+            { key:'numberOfItems', label:'No. Items' }, { key:'packageQuantity', label:'Pkg Qty' }, { key:'armLength', label:'Arm Length' },
+            { key:'bridgeWidth', label:'Bridge Width' }, { key:'itemWeight', label:'Item Weight' },
+          ]
+          const imgFields: { key: keyof FormData; label: string; req?: boolean }[] = [
+            { key:'mainImage', label:'Main Image', req:true }, { key:'image2', label:'Image 2' },
+            { key:'image3', label:'Image 3' }, { key:'image4', label:'Image 4' },
+            { key:'image5', label:'Image 5' }, { key:'image6', label:'Image 6' },
+            { key:'image7', label:'Image 7' }, { key:'image8', label:'Image 8' },
+          ]
+          return (
+          <fieldset>
+            <legend>规格 — 规格图片</legend>
+            {/* Spec fields: 3 per row */}
+            {Array.from({ length: Math.ceil(specFields.length / 3) }, (_, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px', flexWrap:'wrap' }}>
+                {specFields.slice(i * 3, i * 3 + 3).map(({ key, label }) => (
+                  <span key={key} style={{ display:'flex', alignItems:'center', gap:'4px' }}>
+                    <label style={lO}>{label}</label>
+                    <input type="text" value={form[key] as string} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ width:'110px', fontSize:'11px' }} />
+                  </span>
+                ))}
+              </div>
             ))}
-          </div>
-
-          {/* Image URLs — 2 per row */}
-          <div className="win98-fg-2" style={{ marginTop: '6px' }}>
-            {([
-              { key: 'mainImage' as const, label: 'Main Image', req: true },
-              { key: 'image2'    as const, label: 'Image 2' },
-              { key: 'image3'    as const, label: 'Image 3' },
-              { key: 'image4'    as const, label: 'Image 4' },
-              { key: 'image5'    as const, label: 'Image 5' },
-              { key: 'image6'    as const, label: 'Image 6' },
-              { key: 'image7'    as const, label: 'Image 7' },
-              { key: 'image8'    as const, label: 'Image 8' },
-            ]).map(({ key, label, req }) => (
-              <Fragment key={key}>
-                <FieldLabel text={label} type={req ? 'required' : 'optional'} />
-                <input type="text" value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} placeholder="https://…" style={{ fontSize: '11px', width: '100%' }} />
-              </Fragment>
-            ))}
-          </div>
-        </fieldset>
+            {/* Image URLs: 2 per row */}
+            <div style={{ marginTop:'6px' }}>
+              {Array.from({ length: Math.ceil(imgFields.length / 2) }, (_, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px' }}>
+                  {imgFields.slice(i * 2, i * 2 + 2).map(({ key, label, req }) => (
+                    <span key={key} style={{ display:'flex', alignItems:'center', gap:'4px', flex:1 }}>
+                      <label style={req ? lR : lO}>{req ? '* ' : ''}{label}</label>
+                      <input type="text" value={form[key] as string} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} placeholder="https://…" style={{ flex:1, fontSize:'11px' }} />
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </fieldset>
+          )
+        })()}
 
         {/* ── Action buttons ── */}
         <div style={{ display: 'flex', gap: '4px', paddingBottom: '6px' }}>
