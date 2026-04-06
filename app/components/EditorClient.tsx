@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect, useRef, Fragment } from 'react'
 import KeywordSuggestions from '@/components/KeywordSuggestions'
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -270,6 +270,25 @@ export default function EditorClient({ initialListing, sku }: Props) {
   }
 
   const [form, setForm] = useState<FormData>(buildInitialForm)
+  const [sidebarWidth, setSidebarWidth] = useState(180)
+  const dragging = useRef(false)
+  const dragStartX = useRef(0)
+  const dragStartWidth = useRef(0)
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragging.current) return
+      const delta = dragStartX.current - e.clientX
+      setSidebarWidth(Math.max(120, Math.min(420, dragStartWidth.current + delta)))
+    }
+    const onUp = () => { dragging.current = false }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [])
 
   // Overlay localStorage draft on mount
   useEffect(() => {
@@ -303,7 +322,7 @@ export default function EditorClient({ initialListing, sku }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flex: 1, gap: '6px', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
       {/* ─── Left: form fields (scrollable) ─── */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -481,8 +500,28 @@ export default function EditorClient({ initialListing, sku }: Props) {
         </div>
       </div>
 
+      {/* ─── Resize handle ─── */}
+      <div
+        onMouseDown={(e) => {
+          dragging.current = true
+          dragStartX.current = e.clientX
+          dragStartWidth.current = sidebarWidth
+          e.preventDefault()
+        }}
+        style={{
+          width: '5px',
+          flexShrink: 0,
+          cursor: 'col-resize',
+          background: '#d4d0c8',
+          borderLeft: '1px solid #808080',
+          borderRight: '1px solid #ffffff',
+          margin: '0 2px',
+        }}
+        title="拖动调整宽度"
+      />
+
       {/* ─── Right: preview panel ─── */}
-      <div style={{ width: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div style={{ width: `${sidebarWidth}px`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflow: 'hidden' }}>
 
         {/* Completeness */}
         <fieldset>
