@@ -1,10 +1,15 @@
 @import "tailwindcss";
 @import "98.css/dist/98.css";
 
+/* Universal box-sizing reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 /* ── Desktop background ── */
 body {
   background: #008080;
-  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif;
   font-size: 11px;
   margin: 0;
   padding: 8px;
@@ -46,15 +51,16 @@ body {
 .win98-toolbar select {
   font-size: 11px;
   height: 21px;
-  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif;
 }
 .win98-toolbar input[type="text"] { width: 160px; }
 .win98-toolbar button { font-size: 11px; }
 .win98-toolbar button.active {
-  border-top-color: #808080;
-  border-left-color: #808080;
-  border-right-color: #ffffff;
-  border-bottom-color: #ffffff;
+  box-shadow:
+    inset -1px -1px #ffffff,
+    inset 1px 1px #0a0a0a,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px grey;
 }
 
 /* ── Page content area ── */
@@ -89,7 +95,7 @@ body {
   border-collapse: collapse;
   background: #ffffff;
   font-size: 11px;
-  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif;
   border: 2px inset #d4d0c8;
 }
 .win98-listview th {
@@ -141,7 +147,7 @@ body {
 .win98-field-row textarea {
   flex: 1;
   font-size: 11px;
-  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-family: 'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif;
 }
 .win98-field-row textarea {
   height: 46px;
@@ -225,10 +231,11 @@ body {
 .win98-img-sidebar button.active {
   background: #000080;
   color: #ffffff;
-  border-top-color: #808080;
-  border-left-color: #808080;
-  border-right-color: #ffffff;
-  border-bottom-color: #ffffff;
+  box-shadow:
+    inset -1px -1px #ffffff,
+    inset 1px 1px #0a0a0a,
+    inset -2px -2px #dfdfdf,
+    inset 2px 2px grey;
 }
 .win98-img-content {
   flex: 1;
