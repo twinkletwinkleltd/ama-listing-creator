@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import KeywordSuggestions from '@/components/KeywordSuggestions'
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -163,23 +163,19 @@ function generateCsv(form: FormData, sku: string): string {
 }
 
 // ─── Small helpers ────────────────────────────────────────────────────
-function dot(type: 'required' | 'suggested' | 'optional') {
-  return type === 'required' ? 'bg-red-500' : type === 'suggested' ? 'bg-yellow-400' : 'bg-gray-300'
-}
-
 function FieldLabel({ text, type = 'optional' }: { text: string; type?: 'required' | 'suggested' | 'optional' }) {
+  const color = type === 'required' ? '#cc0000' : type === 'suggested' ? '#b37a00' : '#000000'
   return (
-    <div className="flex items-center gap-1.5">
-      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dot(type)}`} />
-      <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">{text}</label>
-    </div>
+    <label style={{ width: '110px', textAlign: 'right', flexShrink: 0, paddingTop: '3px', fontSize: '11px', color, display: 'block' }}>
+      {type === 'required' ? '* ' : ''}{text}
+    </label>
   )
 }
 
 function CharCount({ value, max }: { value: string; max: number }) {
   const over = value.length > max
   return (
-    <span className={`text-xs ml-auto tabular-nums ${over ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
+    <span style={{ fontSize: '10px', color: over ? '#cc0000' : '#808080', whiteSpace: 'nowrap', marginLeft: '4px', paddingTop: '3px' }}>
       {value.length}/{max}
     </span>
   )
@@ -187,9 +183,9 @@ function CharCount({ value, max }: { value: string; max: number }) {
 
 function ReadonlyField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="win98-field-row">
       <FieldLabel text={label} />
-      <div className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-400 bg-gray-50">
+      <div style={{ flex: 1, fontSize: '11px', color: '#808080', padding: '2px 4px', border: '2px inset #d4d0c8', background: '#d4d0c8', minHeight: '21px' }}>
         {value || '—'}
       </div>
     </div>
@@ -252,71 +248,6 @@ function ImageInput({
   )
 }
 
-const inputCls = 'border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full'
-const selectCls = inputCls
-const textareaCls = `${inputCls} resize-none`
-
-// ─── Tooltip & Reference Field Components ────────────────────────────
-function Tooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false)
-  return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
-      <span
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-        style={{ cursor: 'help', color: '#6b7a8d', fontSize: '11px', border: '1px solid #d0d7de', borderRadius: '3px', padding: '0 4px', userSelect: 'none' }}
-      >?</span>
-      {show && (
-        <span style={{
-          position: 'absolute', left: '100%', top: '-4px', marginLeft: '6px',
-          background: '#1a2332', color: '#fff', fontSize: '11px', padding: '4px 8px',
-          borderRadius: '3px', zIndex: 100, maxWidth: '200px',
-          whiteSpace: 'normal', width: '160px', lineHeight: '1.4'
-        }}>{text}</span>
-      )}
-    </span>
-  )
-}
-
-function RefField({ label, col, tooltip, placeholder }: { label: string; col: number; tooltip?: string; placeholder?: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', borderBottom: '1px solid #f0f2f5' }}>
-      <span style={{ fontSize: '10px', color: '#6b7a8d', width: '48px', flexShrink: 0, fontFamily: 'Consolas, monospace' }}>Col {col}</span>
-      <span style={{ fontSize: '12px', color: '#1a2332', flex: 1, minWidth: '120px' }}>{label}</span>
-      <input
-        type="text"
-        placeholder={placeholder || ''}
-        style={{
-          border: '1px solid #d0d7de', borderRadius: '3px', padding: '2px 6px',
-          fontSize: '12px', width: '120px', color: '#1a2332', background: '#fafbfc'
-        }}
-      />
-      {tooltip && <Tooltip text={tooltip} />}
-    </div>
-  )
-}
-
-function RefGroup({ title, children, defaultOpen }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen ?? false)
-  return (
-    <div style={{ border: '1px solid #d0d7de', borderRadius: '4px', marginBottom: '8px', overflow: 'hidden' }}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        style={{
-          width: '100%', textAlign: 'left', padding: '6px 10px',
-          background: open ? '#f0f2f5' : '#fafbfc', border: 'none', cursor: 'pointer',
-          fontSize: '12px', fontWeight: 600, color: '#1a2332', display: 'flex', justifyContent: 'space-between'
-        }}
-      >
-        <span>{title}</span>
-        <span style={{ color: '#6b7a8d' }}>{open ? '▲' : '▼'}</span>
-      </button>
-      {open && <div style={{ padding: '8px 10px' }}>{children}</div>}
-    </div>
-  )
-}
-
 // ─── Main EditorClient ────────────────────────────────────────────────
 export default function EditorClient({ initialListing, sku }: Props) {
   const buildInitialForm = (): FormData => {
@@ -339,8 +270,6 @@ export default function EditorClient({ initialListing, sku }: Props) {
   }
 
   const [form, setForm] = useState<FormData>(buildInitialForm)
-  const [activeTab, setActiveTab] = useState(0)
-  const [showFullRef, setShowFullRef] = useState(false)
 
   // Overlay localStorage draft on mount
   useEffect(() => {
@@ -353,34 +282,6 @@ export default function EditorClient({ initialListing, sku }: Props) {
       }
     } catch { /* ignore */ }
   }, [sku])
-
-  const set = useCallback((field: keyof FormData, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
-  }, [])
-
-  // Completeness
-  const reqFilled = REQUIRED_KEYS.filter((k) => form[k].trim() !== '').length
-  const sugFilled = SUGGESTED_KEYS.filter((k) => form[k].trim() !== '').length
-  const reqPct    = Math.round((reqFilled  / REQUIRED_KEYS.length)  * 100)
-  const sugPct    = Math.round((sugFilled  / SUGGESTED_KEYS.length) * 100)
-  const totalFilled = reqFilled + sugFilled
-  const totalFields = REQUIRED_KEYS.length + SUGGESTED_KEYS.length
-  const overallPct  = Math.round((totalFilled / totalFields) * 100)
-  const scoreColor  = overallPct >= 80 ? 'text-green-600' : overallPct >= 60 ? 'text-yellow-600' : 'text-red-500'
-
-  const checklist = [
-    { label: '标题 Item Name',  done: !!form.itemName.trim() },
-    { label: '价格 Price',      done: !!form.price.trim() },
-    { label: '库存 Quantity',   done: !!form.quantity.trim() },
-    { label: '主图 Main Image', done: !!form.mainImage.trim() },
-    { label: 'Bullet 1',        done: !!form.bullet1.trim() },
-    { label: 'Bullet 2',        done: !!form.bullet2.trim() },
-    { label: 'Bullet 3',        done: !!form.bullet3.trim() },
-    { label: 'Bullet 4',        done: !!form.bullet4.trim() },
-    { label: 'Bullet 5',        done: !!form.bullet5.trim() },
-    { label: '描述 Description',done: !!form.description.trim() },
-    { label: '关键词 Keywords', done: !!form.keywords.trim() },
-  ]
 
   const handleSaveDraft = () => {
     const key = sku || 'new'
@@ -401,556 +302,298 @@ export default function EditorClient({ initialListing, sku }: Props) {
     URL.revokeObjectURL(url)
   }
 
-  const TABS = [
-    { label: '基本信息', color: 'text-red-500',    dot: 'bg-red-500'    },
-    { label: '卖点内容', color: 'text-yellow-600', dot: 'bg-yellow-400' },
-    { label: '规格图片', color: 'text-gray-500',   dot: 'bg-gray-300'   },
-  ]
-
   return (
-    <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 48px)' }}>
+    <div style={{ display: 'flex', flex: 1, gap: '6px', overflow: 'hidden' }}>
 
-      {/* ─── Left: vertical tab sidebar ─── */}
-      <div className="w-28 bg-white border-r border-gray-200 flex flex-col pt-4 gap-1 flex-shrink-0">
-        {TABS.map((tab, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveTab(i)}
-            className={`mx-2 px-3 py-3 rounded-xl text-left transition-colors ${
-              activeTab === i
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <div className={`flex items-center gap-1.5 mb-0.5`}>
-              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${tab.dot}`} />
-              <span className="text-xs font-semibold">{['必填', '建议', '规格'][i]}</span>
-            </div>
-            <span className="text-xs text-gray-500 leading-tight">{tab.label}</span>
-          </button>
-        ))}
-      </div>
+      {/* ─── Left: form fields (scrollable) ─── */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
 
-      {/* ─── Center: scrollable form content ─── */}
-      <div className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="p-5 flex flex-col gap-4 max-w-2xl">
-          <div className="flex items-center justify-between">
-            <h1 className="text-base font-semibold text-gray-800">
-              {sku ? `Editing: ${sku}` : 'New Listing'}
-            </h1>
+        {/* Current SKU indicator */}
+        <div style={{ fontSize: '11px', color: '#444444' }}>
+          {sku ? `编辑：${sku}` : '新建 Listing'}
+        </div>
+
+        {/* ── Fieldset 1: Required ── */}
+        <fieldset>
+          <legend>* 必填 — 基本信息</legend>
+
+          <div className="win98-field-row">
+            <FieldLabel text="Item Name" type="required" />
+            <input
+              type="text"
+              value={form.itemName}
+              onChange={(e) => setForm((f) => ({ ...f, itemName: e.target.value }))}
+              style={{ flex: 1, fontSize: '11px' }}
+            />
+            <CharCount value={form.itemName} max={200} />
           </div>
 
-          {/* ── Tab 1: 基本信息 ── */}
-          {activeTab === 0 && (
-            <div className="flex flex-col gap-4">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center">
-                    <FieldLabel text="Item Name / 标题" type="required" />
-                    <CharCount value={form.itemName} max={200} />
-                  </div>
-                  <textarea
-                    rows={3}
-                    value={form.itemName}
-                    onChange={(e) => set('itemName', e.target.value)}
-                    placeholder="e.g. TWINKLE TWINKLE Reading Glasses - 3 Pack..."
-                    className={textareaCls}
-                    maxLength={220}
-                  />
-                </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Brand Name" type="required" />
+            <input
+              type="text"
+              value={form.brand}
+              onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))}
+              style={{ flex: 1, fontSize: '11px' }}
+            />
+          </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <FieldLabel text="Brand Name" type="required" />
-                  <input
-                    value={form.brand}
-                    onChange={(e) => set('brand', e.target.value)}
-                    className={`${inputCls} bg-gray-50 text-gray-500`}
-                  />
-                </div>
+          <ReadonlyField label="SKU" value={sku} />
 
-                <div className="flex gap-4">
-                  <ReadonlyField label="SKU" value={sku} />
-                  <ReadonlyField label="Parent SKU" value={form.parentSku} />
-                </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Price (£)" type="required" />
+            <input
+              type="text"
+              value={form.price}
+              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+              style={{ width: '80px', fontSize: '11px' }}
+            />
+          </div>
 
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Price GBP" type="required" />
-                    <input
-                      type="text"
-                      value={form.price}
-                      onChange={(e) => set('price', e.target.value)}
-                      placeholder="e.g. 5.99"
-                      className={inputCls}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Quantity" type="required" />
-                    <input
-                      type="text"
-                      value={form.quantity}
-                      onChange={(e) => set('quantity', e.target.value)}
-                      placeholder="e.g. 99"
-                      className={inputCls}
-                    />
-                  </div>
-                </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Quantity" type="required" />
+            <input
+              type="text"
+              value={form.quantity}
+              onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
+              style={{ width: '60px', fontSize: '11px' }}
+            />
+          </div>
 
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Listing Action" type="required" />
-                    <select
-                      value={form.listingAction}
-                      onChange={(e) => set('listingAction', e.target.value)}
-                      className={selectCls}
-                    >
-                      <option>Create new listing</option>
-                      <option>Create or Replace (Full Update)</option>
-                      <option>Edit (Partial Update)</option>
-                      <option>Update</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Item Condition" />
-                    <div className={`${inputCls} bg-gray-50 text-gray-400`}>New</div>
-                  </div>
-                </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Listing Action" type="required" />
+            <select
+              value={form.listingAction}
+              onChange={(e) => setForm((f) => ({ ...f, listingAction: e.target.value }))}
+              style={{ fontSize: '11px' }}
+            >
+              <option>Create new listing</option>
+              <option>Update</option>
+              <option>Delete</option>
+            </select>
+          </div>
 
-                <ReadonlyField label="Variation Theme" value={form.variationTheme} />
-                <ReadonlyField label="Parentage Level" value={form.parentage} />
-              </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Parentage" />
+            <select
+              value={form.parentage}
+              onChange={(e) => setForm((f) => ({ ...f, parentage: e.target.value }))}
+              style={{ fontSize: '11px' }}
+            >
+              <option value="">—</option>
+              <option value="parent">Parent</option>
+              <option value="child">Child</option>
+            </select>
+          </div>
+
+          <div className="win98-field-row">
+            <FieldLabel text="Parent SKU" />
+            <input
+              type="text"
+              value={form.parentSku}
+              onChange={(e) => setForm((f) => ({ ...f, parentSku: e.target.value }))}
+              style={{ flex: 1, fontSize: '11px' }}
+            />
+          </div>
+
+          <div className="win98-field-row">
+            <FieldLabel text="Variation Theme" />
+            <input
+              type="text"
+              value={form.variationTheme}
+              onChange={(e) => setForm((f) => ({ ...f, variationTheme: e.target.value }))}
+              style={{ flex: 1, fontSize: '11px' }}
+            />
+          </div>
+        </fieldset>
+
+        {/* ── Fieldset 2: Suggested ── */}
+        <fieldset>
+          <legend>建议 — 卖点内容</legend>
+
+          {[
+            { key: 'bullet1' as const, label: 'Bullet 1', max: 200 },
+            { key: 'bullet2' as const, label: 'Bullet 2', max: 200 },
+            { key: 'bullet3' as const, label: 'Bullet 3', max: 200 },
+            { key: 'bullet4' as const, label: 'Bullet 4', max: 200 },
+            { key: 'bullet5' as const, label: 'Bullet 5', max: 200 },
+          ].map(({ key, label, max }) => (
+            <div className="win98-field-row" key={key}>
+              <FieldLabel text={label} type="suggested" />
+              <textarea
+                value={form[key]}
+                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                style={{ flex: 1, fontSize: '11px', fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif", height: '46px', resize: 'vertical' }}
+              />
+              <CharCount value={form[key]} max={max} />
             </div>
-          )}
+          ))}
 
-          {/* ── Tab 2: 卖点内容 ── */}
-          {activeTab === 1 && (
-            <div className="flex flex-col gap-4">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-                <h2 className="text-sm font-semibold text-gray-700">Bullet Points</h2>
-                {[1, 2, 3, 4, 5].map((n) => {
-                  const key = `bullet${n}` as keyof FormData
-                  return (
-                    <div key={n} className="flex flex-col gap-1.5">
-                      <div className="flex items-center">
-                        <FieldLabel text={`Bullet Point ${n}`} type="suggested" />
-                        <CharCount value={form[key]} max={500} />
-                      </div>
-                      <textarea
-                        rows={2}
-                        value={form[key]}
-                        onChange={(e) => set(key, e.target.value)}
-                        placeholder={`Bullet point ${n}...`}
-                        className={textareaCls}
-                        maxLength={520}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Description" type="suggested" />
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              style={{ flex: 1, fontSize: '11px', fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif", height: '60px', resize: 'vertical' }}
+            />
+            <CharCount value={form.description} max={2000} />
+          </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center">
-                    <FieldLabel text="Product Description" type="suggested" />
-                    <CharCount value={form.description} max={2000} />
-                  </div>
-                  <textarea
-                    rows={7}
-                    value={form.description}
-                    onChange={(e) => set('description', e.target.value)}
-                    placeholder="Full product description..."
-                    className={textareaCls}
-                    maxLength={2100}
-                  />
-                </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Keywords" type="suggested" />
+            <input
+              type="text"
+              value={form.keywords}
+              onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
+              style={{ flex: 1, fontSize: '11px' }}
+            />
+            <CharCount value={form.keywords} max={250} />
+          </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center">
-                    <FieldLabel text="Generic Keywords" type="suggested" />
-                    <CharCount value={form.keywords} max={249} />
-                  </div>
-                  <textarea
-                    rows={3}
-                    value={form.keywords}
-                    onChange={(e) => set('keywords', e.target.value)}
-                    placeholder="Space-separated keywords..."
-                    className={`${textareaCls} font-mono`}
-                    maxLength={260}
-                  />
-                  <KeywordSuggestions
-                    value={form.keywords}
-                    onChange={(v) => set('keywords', v)}
-                  />
-                </div>
-              </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Style" type="suggested" />
+            <input
+              type="text"
+              value={form.style}
+              onChange={(e) => setForm((f) => ({ ...f, style: e.target.value }))}
+              style={{ flex: 1, fontSize: '11px' }}
+            />
+          </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-                <h2 className="text-sm font-semibold text-gray-700">分类与受众</h2>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Style" type="suggested" />
-                    <input
-                      value={form.style}
-                      onChange={(e) => set('style', e.target.value)}
-                      placeholder="e.g. Classic"
-                      className={inputCls}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Department" type="suggested" />
-                    <select
-                      value={form.department}
-                      onChange={(e) => set('department', e.target.value)}
-                      className={selectCls}
-                    >
-                      <option>Unisex Adults</option>
-                      <option>Mens</option>
-                      <option>Womens</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Target Gender" type="suggested" />
-                    <select
-                      value={form.targetGender}
-                      onChange={(e) => set('targetGender', e.target.value)}
-                      className={selectCls}
-                    >
-                      <option>Unisex</option>
-                      <option>Male</option>
-                      <option>Female</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+          <div className="win98-field-row">
+            <FieldLabel text="Department" type="suggested" />
+            <select
+              value={form.department}
+              onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
+              style={{ fontSize: '11px' }}
+            >
+              <option>Unisex Adults</option>
+              <option>Men</option>
+              <option>Women</option>
+            </select>
+          </div>
+
+          <div className="win98-field-row">
+            <FieldLabel text="Gender" type="suggested" />
+            <select
+              value={form.targetGender}
+              onChange={(e) => setForm((f) => ({ ...f, targetGender: e.target.value }))}
+              style={{ fontSize: '11px' }}
+            >
+              <option>Unisex</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+        </fieldset>
+
+        {/* ── Fieldset 3: Specs & Images ── */}
+        <fieldset>
+          <legend>规格 — 规格图片</legend>
+
+          {[
+            { key: 'colorMap' as const, label: 'Color Map' },
+            { key: 'color' as const, label: 'Color' },
+            { key: 'strength' as const, label: 'Strength' },
+            { key: 'frameMaterial' as const, label: 'Frame Material' },
+            { key: 'frameType' as const, label: 'Frame Type' },
+            { key: 'itemShape' as const, label: 'Item Shape' },
+            { key: 'numberOfItems' as const, label: 'No. of Items' },
+            { key: 'packageQuantity' as const, label: 'Pkg Quantity' },
+            { key: 'armLength' as const, label: 'Arm Length' },
+            { key: 'bridgeWidth' as const, label: 'Bridge Width' },
+            { key: 'itemWeight' as const, label: 'Item Weight' },
+          ].map(({ key, label }) => (
+            <div className="win98-field-row" key={key}>
+              <FieldLabel text={label} />
+              <input
+                type="text"
+                value={form[key]}
+                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                style={{ flex: 1, fontSize: '11px' }}
+              />
             </div>
-          )}
+          ))}
 
-          {/* ── Tab 3: 规格图片 ── */}
-          {activeTab === 2 && (
-            <div className="flex flex-col gap-4">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-                <h2 className="text-sm font-semibold text-gray-700">颜色与镜片</h2>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Color Map" type="suggested" />
-                    <input value={form.colorMap} onChange={(e) => set('colorMap', e.target.value)} placeholder="e.g. Black" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Colour" type="suggested" />
-                    <input value={form.color} onChange={(e) => set('color', e.target.value)} placeholder="e.g. 3 x Black" className={inputCls} />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Magnification Strength" type="suggested" />
-                    <input value={form.strength} onChange={(e) => set('strength', e.target.value)} placeholder="e.g. 1.5" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Unit" />
-                    <div className={`${inputCls} bg-gray-50 text-gray-400`}>diopters</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-                <h2 className="text-sm font-semibold text-gray-700">镜架规格</h2>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Frame Material" type="suggested" />
-                    <input value={form.frameMaterial} onChange={(e) => set('frameMaterial', e.target.value)} placeholder="e.g. Plastic" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Frame Type" type="suggested" />
-                    <input value={form.frameType} onChange={(e) => set('frameType', e.target.value)} placeholder="e.g. Full Rim" className={inputCls} />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Item Shape" type="suggested" />
-                    <input value={form.itemShape} onChange={(e) => set('itemShape', e.target.value)} placeholder="e.g. Rectangular" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Number of Items" type="suggested" />
-                    <input value={form.numberOfItems} onChange={(e) => set('numberOfItems', e.target.value)} placeholder="e.g. 3" className={inputCls} />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Arm Length (mm)" />
-                    <input value={form.armLength} onChange={(e) => set('armLength', e.target.value)} placeholder="mm" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Bridge Width (mm)" />
-                    <input value={form.bridgeWidth} onChange={(e) => set('bridgeWidth', e.target.value)} placeholder="mm" className={inputCls} />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Item Weight" />
-                    <input value={form.itemWeight} onChange={(e) => set('itemWeight', e.target.value)} placeholder="e.g. 25" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5 w-28">
-                    <FieldLabel text="Unit" />
-                    <select value={form.weightUnit} onChange={(e) => set('weightUnit', e.target.value)} className={selectCls}>
-                      <option>g</option>
-                      <option>kg</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Item Package Qty" />
-                    <input value={form.packageQuantity} onChange={(e) => set('packageQuantity', e.target.value)} placeholder="e.g. 3" className={inputCls} />
-                  </div>
-                  <div className="flex flex-col gap-1.5 flex-1">
-                    <FieldLabel text="Country of Origin" />
-                    <div className={`${inputCls} bg-gray-50 text-gray-400`}>CN</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-                <h2 className="text-sm font-semibold text-gray-700">图片 Images</h2>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex flex-col gap-1">
-                  <p className="text-xs font-semibold text-blue-700">📷 图片上传说明</p>
-                  <p className="text-xs text-blue-600 leading-relaxed">
-                    请上传3张产品原图（白底正面 / 侧面 / 45度），系统将自动生成尺寸标注图和多色展示图。
-                    图片需托管在公网可访问的服务器上，填入URL即可。
-                  </p>
-                  <a href="/image-guide" target="_blank" className="text-xs text-blue-500 hover:text-blue-700 underline mt-0.5">
-                    查看完整图片指南 →
-                  </a>
-                </div>
-
-                <ImageInput label="Main Image URL" value={form.mainImage} onChange={(v) => set('mainImage', v)} required />
-                {(['image2','image3','image4','image5','image6','image7','image8'] as const).map((key, i) => (
-                  <ImageInput key={key} label={`Image URL ${i + 2}`} value={form[key]} onChange={(v) => set(key, v)} />
-                ))}
-              </div>
-
-              {/* ── 完整字段参考 ── */}
-              <div style={{ border: '1px solid #d0d7de', borderRadius: '4px', background: '#fff' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowFullRef(!showFullRef)}
-                  style={{
-                    width: '100%', textAlign: 'left', padding: '10px 14px',
-                    background: '#fafbfc', border: 'none', cursor: 'pointer',
-                    fontSize: '13px', fontWeight: 600, color: '#1a2332', display: 'flex', justifyContent: 'space-between',
-                    borderRadius: '4px'
-                  }}
-                >
-                  <span>📋 完整字段参考（293列）</span>
-                  <span style={{ color: '#6b7a8d' }}>{showFullRef ? '▲ 折叠' : '▼ 展开'}</span>
-                </button>
-
-                {showFullRef && (
-                  <div style={{ padding: '12px 14px' }}>
-                    <RefGroup title="【定价与库存】" defaultOpen={true}>
-                      <RefField label="List Price with Tax" col={20} tooltip="含税建议零售价" />
-                      <RefField label="Sale Price GBP" col={52} tooltip="促销价格（英镑）" />
-                      <RefField label="Sale Start Date" col={53} tooltip="促销开始日期，格式 YYYY-MM-DD" placeholder="2025-01-01" />
-                      <RefField label="Sale End Date" col={54} tooltip="促销结束日期，格式 YYYY-MM-DD" placeholder="2025-12-31" />
-                      <RefField label="Minimum Seller Allowed Price" col={50} tooltip="卖家允许的最低价格" />
-                      <RefField label="Maximum Seller Allowed Price" col={51} tooltip="卖家允许的最高价格" />
-                      <RefField label="Merchant Shipping Group" col={73} tooltip="配送组名称" />
-                      <RefField label="Handling Time (days)" col={45} tooltip="处理时间（天），0表示当天发货" placeholder="1" />
-                    </RefGroup>
-
-                    <RefGroup title="【B2B定价】">
-                      <RefField label="Your Price GBP B2B" col={57} tooltip="企业客户专属价格" />
-                      <RefField label="Quantity Price Type" col={62} tooltip="数量折扣类型" />
-                      <RefField label="Quantity Threshold Level 1" col={63} tooltip="数量折扣门槛1" />
-                      <RefField label="Quantity Price Level 1" col={64} tooltip="数量折扣价格1" />
-                      <RefField label="Quantity Threshold Level 2" col={65} tooltip="数量折扣门槛2" />
-                      <RefField label="Quantity Price Level 2" col={66} tooltip="数量折扣价格2" />
-                      <RefField label="Quantity Threshold Level 3" col={67} tooltip="数量折扣门槛3" />
-                      <RefField label="Quantity Price Level 3" col={68} tooltip="数量折扣价格3" />
-                      <RefField label="Quantity Threshold Level 4" col={69} tooltip="数量折扣门槛4" />
-                      <RefField label="Quantity Price Level 4" col={70} tooltip="数量折扣价格4" />
-                      <RefField label="Quantity Threshold Level 5" col={71} tooltip="数量折扣门槛5" />
-                      <RefField label="Quantity Price Level 5" col={72} tooltip="数量折扣价格5" />
-                    </RefGroup>
-
-                    <RefGroup title="【产品属性】" defaultOpen={true}>
-                      <RefField label="Style" col={81} tooltip="产品风格，如Classic/Sport" />
-                      <RefField label="Age Range Description" col={84} tooltip="适用年龄段，如Adult" />
-                      <RefField label="Item Type Name" col={90} tooltip="产品类型名称" />
-                      <RefField label="Ring Size" col={93} tooltip="戒指尺寸，眼镜类不适用" />
-                      <RefField label="Size" col={94} tooltip="尺寸，如One Size" />
-                      <RefField label="Item Diameter" col={95} tooltip="物品直径" />
-                      <RefField label="Item Diameter Unit" col={96} tooltip="直径单位，如mm" placeholder="mm" />
-                      <RefField label="Part Number" col={97} tooltip="零件编号/型号" />
-                      <RefField label="Configuration" col={118} tooltip="产品配置说明" />
-                      <RefField label="Cylinder Axis" col={119} tooltip="散光轴向，老花镜通常不填" />
-                      <RefField label="Lens Correction Type 1" col={153} tooltip="镜片矫正类型1" />
-                      <RefField label="Lens Correction Type 2" col={154} tooltip="镜片矫正类型2" />
-                      <RefField label="Lens Correction Type 3" col={155} tooltip="镜片矫正类型3" />
-                      <RefField label="Lens Correction Type 4" col={156} tooltip="镜片矫正类型4" />
-                      <RefField label="Lens Correction Type 5" col={157} tooltip="镜片矫正类型5" />
-                      <RefField label="Optical Power" col={158} tooltip="光学度数" />
-                      <RefField label="Base Curve Radius" col={151} tooltip="基弧半径，隐形眼镜用" />
-                      <RefField label="Base Curve Radius Unit" col={152} tooltip="基弧单位，如mm" placeholder="mm" />
-                      <RefField label="Pattern" col={140} tooltip="图案/花纹" />
-                      <RefField label="Unit Count" col={141} tooltip="单位数量" />
-                      <RefField label="Unit Count Type" col={142} tooltip="单位类型，如Count/Pair" />
-                      <RefField label="Scent 1" col={146} tooltip="香气1，眼镜类不适用，留空即可" />
-                      <RefField label="Scent 2" col={147} tooltip="香气2，眼镜类不适用，留空即可" />
-                      <RefField label="Scent 3" col={148} tooltip="香气3，眼镜类不适用，留空即可" />
-                      <RefField label="Scent 4" col={149} tooltip="香气4，眼镜类不适用，留空即可" />
-                      <RefField label="Scent 5" col={150} tooltip="香气5，眼镜类不适用，留空即可" />
-                    </RefGroup>
-
-                    <RefGroup title="【包装信息】" defaultOpen={true}>
-                      <RefField label="Item Package Length" col={251} tooltip="包装长度" />
-                      <RefField label="Item Package Length Unit" col={252} tooltip="包装长度单位" placeholder="mm" />
-                      <RefField label="Item Package Width" col={253} tooltip="包装宽度" />
-                      <RefField label="Item Package Width Unit" col={254} tooltip="包装宽度单位" placeholder="mm" />
-                      <RefField label="Item Package Height" col={255} tooltip="包装高度" />
-                      <RefField label="Item Package Height Unit" col={256} tooltip="包装高度单位" placeholder="mm" />
-                      <RefField label="Item Package Weight" col={257} tooltip="包装重量" />
-                      <RefField label="Item Package Weight Unit" col={258} tooltip="包装重量单位" placeholder="g" />
-                      <RefField label="Item Weight" col={193} tooltip="产品重量（不含包装）" />
-                      <RefField label="Item Weight Unit" col={194} tooltip="重量单位" placeholder="g" />
-                    </RefGroup>
-
-                    <RefGroup title="【合规信息】">
-                      <RefField label="Country of Origin" col={163} tooltip="原产地，已在上方填写则可跳过" placeholder="CN" />
-                      <RefField label="Are batteries required" col={164} tooltip="是否需要电池，眼镜填false" placeholder="false" />
-                      <RefField label="Are batteries included" col={165} tooltip="是否含电池，眼镜填false" placeholder="false" />
-                      <RefField label="Dangerous Goods Regulations 1" col={180} tooltip="危险品法规1" />
-                      <RefField label="Dangerous Goods Regulations 2" col={181} tooltip="危险品法规2" />
-                      <RefField label="Dangerous Goods Regulations 3" col={182} tooltip="危险品法规3" />
-                      <RefField label="Dangerous Goods Regulations 4" col={183} tooltip="危险品法规4" />
-                      <RefField label="Dangerous Goods Regulations 5" col={184} tooltip="危险品法规5" />
-                      <RefField label="GPSR Safety Attestation" col={222} tooltip="欧盟产品安全法规认证" />
-                      <RefField label="Manufacturer Email" col={223} tooltip="制造商电子邮件" />
-                      <RefField label="Medical Device Sales Channel" col={201} tooltip="医疗器械销售渠道" />
-                      <RefField label="Responsible Person Email" col={202} tooltip="欧盟责任人邮箱" />
-                      <RefField label="Ships Globally" col={225} tooltip="是否全球配送" />
-                      <RefField label="Is OEM Sourced Product" col={235} tooltip="是否OEM代工产品" />
-                      <RefField label="Is Product Subject To Age Restrictions" col={195} tooltip="是否有年龄限制" placeholder="false" />
-                    </RefGroup>
-
-                    <RefGroup title="【EPR包装信息 - 欧盟合规】">
-                      <RefField label="EPR Product Packaging Main Material 1" col={259} tooltip="主要包装材料1，如Plastic/Paper" />
-                      <RefField label="EPR Granular Material 1" col={260} tooltip="细分材料1" />
-                      <RefField label="EPR Granular Material 2" col={261} tooltip="细分材料2" />
-                      <RefField label="EPR Granular Material 3" col={262} tooltip="细分材料3" />
-                      <RefField label="EPR Granular Material 4" col={263} tooltip="细分材料4" />
-                      <RefField label="EPR Granular Material 5" col={264} tooltip="细分材料5" />
-                      <RefField label="EPR Granular Material 6" col={265} tooltip="细分材料6" />
-                      <RefField label="EPR Granular Material 7" col={266} tooltip="细分材料7" />
-                      <RefField label="EPR Granular Material 8" col={267} tooltip="细分材料8" />
-                      <RefField label="EPR Product Packaging Main Material 2" col={276} tooltip="主要包装材料2" />
-                      <RefField label="EPR Granular Material 9" col={277} tooltip="细分材料9" />
-                      <RefField label="EPR Granular Material 10" col={278} tooltip="细分材料10" />
-                      <RefField label="EPR Granular Material 11" col={279} tooltip="细分材料11" />
-                      <RefField label="EPR Granular Material 12" col={280} tooltip="细分材料12" />
-                      <RefField label="EPR Granular Material 13" col={281} tooltip="细分材料13" />
-                      <RefField label="EPR Granular Material 14" col={282} tooltip="细分材料14" />
-                      <RefField label="EPR Granular Material 15" col={283} tooltip="细分材料15" />
-                      <RefField label="EPR Granular Material 16" col={284} tooltip="细分材料16" />
-                    </RefGroup>
-                  </div>
-                )}
-              </div>
+          {[
+            { key: 'mainImage' as const, label: 'Main Image', req: true },
+            { key: 'image2' as const, label: 'Image 2' },
+            { key: 'image3' as const, label: 'Image 3' },
+            { key: 'image4' as const, label: 'Image 4' },
+            { key: 'image5' as const, label: 'Image 5' },
+            { key: 'image6' as const, label: 'Image 6' },
+            { key: 'image7' as const, label: 'Image 7' },
+            { key: 'image8' as const, label: 'Image 8' },
+          ].map(({ key, label, req }) => (
+            <div className="win98-field-row" key={key}>
+              <FieldLabel text={label} type={req ? 'required' : 'optional'} />
+              <input
+                type="text"
+                value={form[key]}
+                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                placeholder="https://…"
+                style={{ flex: 1, fontSize: '11px' }}
+              />
             </div>
-          )}
+          ))}
+        </fieldset>
+
+        {/* ── Action buttons ── */}
+        <div style={{ display: 'flex', gap: '4px', paddingBottom: '6px' }}>
+          <button onClick={handleSaveDraft} style={{ fontSize: '11px' }}>💾 保存草稿</button>
+          <button onClick={handleExportCsv} style={{ fontSize: '11px' }}>⬆ 导出此 SKU CSV</button>
+          <button onClick={() => setForm(EMPTY_FORM)} style={{ fontSize: '11px' }}>✕ 重置</button>
         </div>
       </div>
 
-      {/* ─── Right: fixed status panel ─── */}
-      <div className="w-64 bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-y-auto">
-        <div className="p-4 flex flex-col gap-4 flex-1">
+      {/* ─── Right: preview panel ─── */}
+      <div style={{ width: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
 
-          {/* 标题预览 */}
-          <div className="bg-gray-50 rounded-xl p-3">
-            <p className="text-xs font-medium text-gray-500 mb-1">标题预览</p>
-            <p className={`text-xs leading-relaxed ${form.itemName ? 'text-gray-700' : 'text-gray-300 italic'}`}>
-              {form.itemName || 'Item name will appear here...'}
-            </p>
-          </div>
-
-          {/* 完整度 */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-700">完整度</span>
-              <span className={`text-2xl font-bold tabular-nums ${scoreColor}`}>{overallPct}%</span>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>🔴 必填 {reqFilled}/{REQUIRED_KEYS.length}</span>
-                <span>{reqPct}%</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-red-400 h-1.5 rounded-full transition-all" style={{ width: `${reqPct}%` }} />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>🟡 建议 {sugFilled}/{SUGGESTED_KEYS.length}</span>
-                <span>{sugPct}%</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5">
-                <div className="bg-yellow-400 h-1.5 rounded-full transition-all" style={{ width: `${sugPct}%` }} />
-              </div>
-            </div>
-          </div>
-
-          <hr className="border-gray-100" />
-
-          {/* Checklist */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-gray-700">Checklist</span>
-            {checklist.map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center ${item.done ? 'bg-green-500' : 'border border-gray-200'}`}>
-                  {item.done && (
-                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 10">
-                      <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+        {/* Completeness */}
+        <fieldset>
+          <legend>完整度</legend>
+          {(() => {
+            const reqFilled = REQUIRED_KEYS.filter((k) => !!form[k]).length
+            const sugFilled = SUGGESTED_KEYS.filter((k) => !!form[k]).length
+            const pct = Math.round(((reqFilled + sugFilled) / (REQUIRED_KEYS.length + SUGGESTED_KEYS.length)) * 100)
+            return (
+              <>
+                <div style={{ fontSize: '11px', marginBottom: '2px' }}>
+                  必填：{reqFilled}/{REQUIRED_KEYS.length} {reqFilled === REQUIRED_KEYS.length ? '✅' : ''}
                 </div>
-                <span className={`text-xs ${item.done ? 'text-gray-700' : 'text-gray-400'}`}>{item.label}</span>
-              </div>
-            ))}
-          </div>
+                <div style={{ fontSize: '11px', marginBottom: '4px' }}>
+                  建议：{sugFilled}/{SUGGESTED_KEYS.length}
+                </div>
+                <div className="win98-progress">
+                  <div className="win98-progress-fill" style={{ width: `${pct}%` }}>
+                    {pct}%
+                  </div>
+                </div>
+              </>
+            )
+          })()}
+        </fieldset>
 
-          <hr className="border-gray-100" />
+        {/* Keyword suggestions */}
+        <fieldset style={{ flex: 1 }}>
+          <legend>关键词建议</legend>
+          <KeywordSuggestions
+            value={form.keywords}
+            onChange={(v) => setForm((f) => ({ ...f, keywords: v }))}
+          />
+        </fieldset>
 
-          {/* Buttons */}
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={handleSaveDraft}
-              className="border border-gray-300 text-gray-600 rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              💾 Save Draft
-            </button>
-            <button
-              onClick={handleExportCsv}
-              className="bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-              📤 Export CSV
-            </button>
-          </div>
-
-          {sku && (
-            <>
-              <hr className="border-gray-100" />
-              <div>
-                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">SKU</span>
-                <p className="text-xs font-mono text-gray-600 mt-0.5 break-all">{sku}</p>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Title preview */}
+        {form.itemName && (
+          <fieldset>
+            <legend>标题预览</legend>
+            <div style={{ fontSize: '10px', color: '#000080', lineHeight: '1.4', wordBreak: 'break-word' }}>
+              {form.itemName}
+            </div>
+          </fieldset>
+        )}
       </div>
+
     </div>
   )
 }
