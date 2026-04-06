@@ -166,31 +166,57 @@ body {
   cursor: pointer;
 }
 
-/* ── Editor field rows ── */
+/* ── Editor field rows (legacy, kept for fallback) ── */
 .win98-field-row {
   display: flex;
   align-items: flex-start;
   margin-bottom: 4px;
   gap: 6px;
 }
-.win98-field-row label {
-  width: 110px;
-  font-size: 11px;
+
+/* ── Horizontal form grids ── */
+.win98-fg-2 {
+  display: grid;
+  grid-template-columns: max-content minmax(60px, 1fr) max-content minmax(60px, 1fr);
+  column-gap: 10px;
+  row-gap: 5px;
+  align-items: center;
+}
+.win98-fg-3 {
+  display: grid;
+  grid-template-columns: max-content minmax(50px, 1fr) max-content minmax(50px, 1fr) max-content minmax(50px, 1fr);
+  column-gap: 10px;
+  row-gap: 5px;
+  align-items: center;
+}
+.win98-fg-2 > label,
+.win98-fg-3 > label {
   text-align: right;
-  flex-shrink: 0;
-  padding-top: 3px;
-  color: #000000;
-}
-.win98-field-row input[type="text"],
-.win98-field-row select,
-.win98-field-row textarea {
-  flex: 1;
   font-size: 11px;
-  font-family: 'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif;
+  white-space: nowrap;
 }
-.win98-field-row textarea {
-  height: 46px;
-  resize: vertical;
+.win98-fg-2 > input,
+.win98-fg-2 > select,
+.win98-fg-3 > input,
+.win98-fg-3 > select {
+  min-width: 0;
+  font-size: 11px;
+}
+/* Full-width input: label in col 1, input spans rest */
+.fg-span-rest {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+/* Full-row span (label + input both span all) */
+.fg-span-all {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* ── Progress bar ── */
