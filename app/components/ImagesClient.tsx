@@ -39,20 +39,28 @@ const NAV_ITEMS = [
 
 // Style constants
 const CARD: React.CSSProperties = {
-  background: '#fff', border: '1px solid #d0d7de', borderRadius: '4px',
-  padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '12px'
+  background: '#d4d0c8',
+  borderTop: '2px solid #ffffff',
+  borderLeft: '2px solid #ffffff',
+  borderRight: '2px solid #808080',
+  borderBottom: '2px solid #808080',
+  padding: '8px',
+  marginBottom: '6px',
 }
 const PRIMARY_BTN: React.CSSProperties = {
-  backgroundColor: '#0078d4', color: '#fff', border: '1px solid #005a9e',
-  borderRadius: '4px', padding: '6px 14px', fontSize: '13px', cursor: 'pointer', fontWeight: 500
+  fontSize: '11px',
+  cursor: 'pointer',
+  fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif",
 }
 const SECONDARY_BTN: React.CSSProperties = {
-  backgroundColor: '#fff', color: '#1a2332', border: '1px solid #d0d7de',
-  borderRadius: '4px', padding: '6px 14px', fontSize: '13px', cursor: 'pointer'
+  fontSize: '11px',
+  cursor: 'pointer',
+  fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif",
 }
 const INPUT: React.CSSProperties = {
-  border: '1px solid #d0d7de', borderRadius: '3px', padding: '4px 8px',
-  fontSize: '12px', color: '#1a2332', width: '100%', outline: 'none'
+  fontSize: '11px',
+  fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif",
+  width: '100%',
 }
 
 // ── Image URL Row ──
@@ -128,10 +136,10 @@ function PhotosSection({ listings }: { listings: Listing[] }) {
 
   return (
     <div>
-      <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#1a2332', marginBottom: '12px' }}>产品图片</h2>
+      <h3 style={{ marginBottom: '8px' }}>产品图片</h3>
       {Object.entries(grouped).map(([ps, items]) => (
         <div key={ps} style={CARD}>
-          <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#0078d4', marginBottom: '10px' }}>{ps} 款式</h3>
+          <h4 style={{ marginBottom: '6px' }}>{ps} 款式</h4>
           {items.map(item => (
             <div key={item.sku} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f0f2f5' }}>
               <div style={{ fontSize: '12px', fontWeight: 500, color: '#1a2332', marginBottom: '6px', fontFamily: 'Consolas, monospace' }}>
@@ -312,10 +320,10 @@ function DimensionsSection() {
 
   return (
     <div>
-      <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#1a2332', marginBottom: '12px' }}>尺寸图生成器</h2>
+      <h3 style={{ marginBottom: '8px' }}>尺寸图生成器</h3>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#0078d4', marginBottom: '8px' }}>Step 1：上传图片</h3>
+        <h4 style={{ marginBottom: '6px' }}>Step 1：上传图片</h4>
         <div style={{ display: 'flex', gap: '12px' }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '12px', color: '#6b7a8d', marginBottom: '4px' }}>正面图</div>
@@ -349,7 +357,7 @@ function DimensionsSection() {
       </div>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#0078d4', marginBottom: '8px' }}>Step 2：输入尺寸数据</h3>
+        <h4 style={{ marginBottom: '6px' }}>Step 2：输入尺寸数据</h4>
         <div style={{ marginBottom: '10px' }}>
           <label style={{ fontSize: '12px', color: '#1a2332', marginRight: '8px' }}>款式预设：</label>
           <select
@@ -389,7 +397,7 @@ function DimensionsSection() {
       </div>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#0078d4', marginBottom: '8px' }}>Step 3：选择标注风格</h3>
+        <h4 style={{ marginBottom: '6px' }}>Step 3：选择标注风格</h4>
         <div style={{ display: 'flex', gap: '10px' }}>
           {[
             { id: 'white', label: '简洁白底', desc: '白底+黑色标注线' },
@@ -413,7 +421,7 @@ function DimensionsSection() {
       </div>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#0078d4', marginBottom: '8px' }}>Step 4：生成预览</h3>
+        <h4 style={{ marginBottom: '6px' }}>Step 4：生成预览</h4>
         <button onClick={generateCanvas} style={{ ...PRIMARY_BTN, marginBottom: '10px' }}>
           生成尺寸图
         </button>
@@ -425,7 +433,7 @@ function DimensionsSection() {
 
       {generated && (
         <div style={CARD}>
-          <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#0078d4', marginBottom: '8px' }}>Step 5：下载</h3>
+          <h4 style={{ marginBottom: '6px' }}>Step 5：下载</h4>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => download('png')} style={PRIMARY_BTN}>下载尺寸图 PNG</button>
             <button onClick={() => download('jpeg')} style={SECONDARY_BTN}>下载尺寸图 JPG</button>
@@ -449,7 +457,7 @@ function VideoSection() {
 
   return (
     <div>
-      <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#1a2332', marginBottom: '12px' }}>视频</h2>
+      <h3 style={{ marginBottom: '8px' }}>视频</h3>
       <div style={{ ...CARD, background: '#e8f4fd', border: '1px solid #b3d9f5' }}>
         <div style={{ fontSize: '12px', fontWeight: 600, color: '#0078d4', marginBottom: '4px' }}>Amazon视频规范</div>
         <div style={{ fontSize: '11px', color: '#1a2332', lineHeight: '1.6' }}>
@@ -498,10 +506,10 @@ function VideoSection() {
 function SpecsSection() {
   return (
     <div>
-      <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#1a2332', marginBottom: '12px' }}>图片规范</h2>
+      <h3 style={{ marginBottom: '8px' }}>图片规范</h3>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#d13438', marginBottom: '8px' }}>🔴 主图规范（严格要求）</h3>
+        <h4 style={{ marginBottom: '6px' }}>🔴 主图规范（严格要求）</h4>
         <ul style={{ fontSize: '12px', color: '#1a2332', lineHeight: '1.8', paddingLeft: '16px' }}>
           <li>纯白背景（RGB 255,255,255）</li>
           <li>产品占图片 85% 以上</li>
@@ -513,7 +521,7 @@ function SpecsSection() {
       </div>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#b37a00', marginBottom: '8px' }}>🟡 副图规范（建议）</h3>
+        <h4 style={{ marginBottom: '6px' }}>🟡 副图规范（建议）</h4>
         <ul style={{ fontSize: '12px', color: '#1a2332', lineHeight: '1.8', paddingLeft: '16px' }}>
           <li>最小：1000×1000px</li>
           <li>建议：1200-2000px</li>
@@ -522,7 +530,7 @@ function SpecsSection() {
       </div>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#1a2332', marginBottom: '8px' }}>📸 7张图最佳实践</h3>
+        <h4 style={{ marginBottom: '6px' }}>📸 7张图最佳实践</h4>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
           <tbody>
             {[
@@ -544,7 +552,7 @@ function SpecsSection() {
       </div>
 
       <div style={CARD}>
-        <h3 style={{ fontSize: '13px', fontWeight: 600, color: '#1a2332', marginBottom: '8px' }}>💡 ChatGPT生图提示词</h3>
+        <h4 style={{ marginBottom: '6px' }}>💡 ChatGPT生图提示词</h4>
         <div style={{ marginBottom: '10px' }}>
           <div style={{ fontSize: '12px', fontWeight: 600, color: '#0078d4', marginBottom: '4px' }}>书桌场景：</div>
           <pre style={{ fontSize: '11px', color: '#1a2332', background: '#f6f8fa', border: '1px solid #d0d7de', borderRadius: '3px', padding: '8px', whiteSpace: 'pre-wrap', margin: 0 }}>
@@ -567,37 +575,30 @@ export default function ImagesClient({ listings }: { listings: Listing[] }) {
   const [section, setSection] = useState('photos')
 
   return (
-    <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 40px)', background: '#f0f2f5' }}>
-      {/* Left nav */}
-      <div style={{
-        width: '140px', background: '#fff', borderRight: '1px solid #d0d7de',
-        display: 'flex', flexDirection: 'column', padding: '8px 0', flexShrink: 0
-      }}>
-        {NAV_ITEMS.map(item => (
+    <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+
+      {/* Internal sidebar */}
+      <div className="win98-img-sidebar">
+        {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
             onClick={() => setSection(item.id)}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-              padding: '12px 8px', border: 'none', cursor: 'pointer',
-              background: section === item.id ? '#e8f4fd' : 'transparent',
-              borderLeft: section === item.id ? '2px solid #0078d4' : '2px solid transparent',
-              color: section === item.id ? '#0078d4' : '#6b7a8d',
-            }}
+            className={section === item.id ? 'active' : ''}
           >
-            <span style={{ fontSize: '18px' }}>{item.icon}</span>
-            <span style={{ fontSize: '11px', fontWeight: section === item.id ? 600 : 400, textAlign: 'center' }}>{item.label}</span>
+            <span>{item.icon}</span>
+            <span style={{ fontSize: '10px' }}>{item.label}</span>
           </button>
         ))}
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
+      <div className="win98-img-content" style={{ padding: '6px' }}>
         {section === 'photos' && <PhotosSection listings={listings} />}
         {section === 'dimensions' && <DimensionsSection />}
         {section === 'video' && <VideoSection />}
         {section === 'specs' && <SpecsSection />}
       </div>
+
     </div>
   )
 }
