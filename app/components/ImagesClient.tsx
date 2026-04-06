@@ -107,63 +107,90 @@ function ImageRow({ label, url, onChange, isMain }: { label: string; url: string
 
 // ── Section 1: Photos ──
 function PhotosSection({ listings }: { listings: Listing[] }) {
-  const grouped = listings.reduce((acc, l) => {
-    if (!acc[l.parentSku]) acc[l.parentSku] = []
-    acc[l.parentSku].push(l)
-    return acc
-  }, {} as Record<string, Listing[]>)
+  const [selectedSku, setSelectedSku] = useState<string | null>(null)
 
-  const [urls, setUrls] = useState<Record<string, Record<string, string[]>>>(() => {
-    const init: Record<string, Record<string, string[]>> = {}
-    for (const [ps, items] of Object.entries(grouped)) {
-      init[ps] = {}
-      for (const item of items) {
-        init[ps][item.sku] = [
-          item.mainImage || '', item.image2 || '', item.image3 || '',
-          '', '', '', '', ''
-        ]
-      }
+  const [urls, setUrls] = useState<Record<string, string[]>>(() => {
+    const init: Record<string, string[]> = {}
+    for (const l of listings) {
+      init[l.sku] = [l.mainImage || '', l.image2 || '', l.image3 || '', '', '', '', '', '']
     }
     return init
   })
 
-  const setUrl = (ps: string, sku: string, idx: number, v: string) => {
-    setUrls(prev => ({
-      ...prev,
-      [ps]: { ...prev[ps], [sku]: prev[ps][sku].map((u, i) => i === idx ? v : u) }
-    }))
+  const setUrl = (sku: string, idx: number, v: string) => {
+    setUrls(prev => ({ ...prev, [sku]: prev[sku].map((u, i) => i === idx ? v : u) }))
   }
 
+  const selected = listings.find(l => l.sku === selectedSku)
+
+  // ── Detail view ──
+  if (selectedSku && selected) {
+    const filled = (urls[selected.sku] || []).filter(Boolean).length
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <button onClick={() => setSelectedSku(null)} style={{ fontSize: '11px' }}>← 返回列表</button>
+          <span className="sku-mono" style={{ fontSize: '11px' }}>{selected.sku}</span>
+          <span style={{ fontSize: '11px', color: '#444' }}>— {selected.color || selected.parentSku}</span>
+          <span style={{ fontSize: '10px', color: filled === 8 ? '#006400' : '#808080', marginLeft: 'auto' }}>
+            {filled}/8 张已填
+          </span>
+        </div>
+        <fieldset>
+          <legend>图片 URL</legend>
+          <div style={{ fontSize: '10px', color: '#808080', marginBottom: '6px' }}>
+            主图：建议 1600×1600px 纯白底 &nbsp;|&nbsp; 副图：建议 1200×1200px+
+          </div>
+          {(urls[selected.sku] || []).map((url, i) => (
+            <ImageRow
+              key={i}
+              label={i === 0 ? '主图' : `图 ${i + 1}`}
+              url={url}
+              onChange={v => setUrl(selected.sku, i, v)}
+              isMain={i === 0}
+            />
+          ))}
+        </fieldset>
+      </div>
+    )
+  }
+
+  // ── Master list view ──
   return (
     <div>
-      <h3 style={{ marginBottom: '8px' }}>产品图片</h3>
-      {Object.entries(grouped).map(([ps, items]) => (
-        <div key={ps} style={CARD}>
-          <h4 style={{ marginBottom: '6px' }}>{ps} 款式</h4>
-          {items.map(item => (
-            <div key={item.sku} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f0f2f5' }}>
-              <div style={{ fontSize: '12px', fontWeight: 500, color: '#1a2332', marginBottom: '6px', fontFamily: 'Consolas, monospace' }}>
-                {item.sku} — {item.color}
-              </div>
-              <div style={{ fontSize: '10px', color: '#6b7a8d', marginBottom: '4px' }}>主图：建议 1600×1600px，纯白底；其他图：建议 1200×1200px+</div>
-              {(urls[ps]?.[item.sku] || []).map((url, i) => (
-                <ImageRow
-                  key={i}
-                  label={i === 0 ? '主图 (图1)' : `图${i + 1}`}
-                  url={url}
-                  onChange={v => setUrl(ps, item.sku, i, v)}
-                  isMain={i === 0}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      ))}
-      {Object.keys(grouped).length === 0 && (
-        <div style={{ color: '#6b7a8d', fontSize: '13px', padding: '24px', textAlign: 'center' }}>
-          暂无 listings 数据，请先添加产品
-        </div>
-      )}
+      <div style={{ fontSize: '11px', color: '#444', marginBottom: '4px' }}>
+        共 {listings.length} 条 — 点击行进入编辑图片
+      </div>
+      <div style={{ border: '2px inset #d4d0c8', background: '#ffffff', overflow: 'auto' }}>
+        <table className="win98-listview" style={{ border: 'none', width: '100%' }}>
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>款式</th>
+              <th>颜色</th>
+              <th style={{ textAlign: 'center' }}>图片</th>
+            </tr>
+          </thead>
+          <tbody>
+            {listings.map(l => {
+              const filled = (urls[l.sku] || []).filter(Boolean).length
+              return (
+                <tr key={l.sku} onClick={() => setSelectedSku(l.sku)} style={{ cursor: 'pointer' }}>
+                  <td className="sku-mono">{l.sku}</td>
+                  <td>{l.parentSku}</td>
+                  <td>{l.color || '—'}</td>
+                  <td style={{ textAlign: 'center', color: filled === 0 ? '#cc0000' : filled === 8 ? '#006400' : '#444' }}>
+                    {filled}/8
+                  </td>
+                </tr>
+              )
+            })}
+            {listings.length === 0 && (
+              <tr><td colSpan={4} style={{ padding: '12px', textAlign: 'center', color: '#808080' }}>暂无数据</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
