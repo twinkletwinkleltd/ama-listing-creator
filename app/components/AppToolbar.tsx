@@ -43,7 +43,7 @@ export default function AppToolbar() {
 
       {/* Version badge */}
       <span style={{ marginLeft: 'auto', color: '#808080', fontSize: '10px', fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif" }}>
-        v0.1-beta
+        v1.0.0
       </span>
     </div>
   )
