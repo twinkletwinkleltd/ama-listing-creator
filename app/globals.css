@@ -22,6 +22,33 @@ body {
   box-sizing: border-box;
 }
 
+/* ── Force Win98 title-bar (override any Tailwind base interference) ── */
+.title-bar {
+  background: linear-gradient(to right, #000080, #1084d0) !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 3px 2px 3px 3px !important;
+  flex-shrink: 0;
+}
+.title-bar-text {
+  color: #ffffff !important;
+  font-weight: bold !important;
+  font-size: 11px !important;
+  white-space: nowrap;
+}
+.title-bar-controls {
+  display: flex !important;
+  gap: 2px !important;
+  flex-shrink: 0;
+}
+
+/* ── Force Win98 window background ── */
+.window {
+  background: #d4d0c8 !important;
+}
+
 /* ── App window fills viewport ── */
 .app-window {
   width: 100%;
