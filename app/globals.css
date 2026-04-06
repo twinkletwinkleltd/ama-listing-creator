@@ -177,14 +177,14 @@ body {
 /* ── Horizontal form grids ── */
 .win98-fg-2 {
   display: grid;
-  grid-template-columns: max-content minmax(60px, 1fr) max-content minmax(60px, 1fr);
+  grid-template-columns: max-content minmax(60px, 200px) max-content minmax(60px, 200px);
   column-gap: 10px;
   row-gap: 5px;
   align-items: center;
 }
 .win98-fg-3 {
   display: grid;
-  grid-template-columns: max-content minmax(50px, 1fr) max-content minmax(50px, 1fr) max-content minmax(50px, 1fr);
+  grid-template-columns: max-content minmax(50px, 130px) max-content minmax(50px, 130px) max-content minmax(50px, 130px);
   column-gap: 10px;
   row-gap: 5px;
   align-items: center;
@@ -209,6 +209,7 @@ body {
   align-items: center;
   gap: 4px;
   min-width: 0;
+  max-width: 430px;
 }
 /* Full-row span (label + input both span all) */
 .fg-span-all {
