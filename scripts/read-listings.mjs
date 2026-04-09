@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Support env override: XLSM_DIR=/path/to/xlsm node scripts/read-listings.mjs
-const DATA_DIR = process.env.XLSM_DIR || 'H:/claude code-AM-LIS-参考/新版'
+const DATA_DIR = process.env.XLSM_DIR || 'I:/claude code-AM-LIS-参考/新版'
 
 const FILES = [
   { path: `${DATA_DIR}/TKTK-RX224-xinban-1.0.xlsm`,  source: 'RX224' },

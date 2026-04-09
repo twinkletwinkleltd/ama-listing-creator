@@ -40,6 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# generated data files (run scripts/read-listings.mjs to regenerate)
-/data/listings.json
-/data/styles.json
+# data files committed with codebase; regenerate with: node scripts/read-listings.mjs (needs I:/ Excel)

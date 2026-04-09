@@ -2,8 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  // basePath: '/apps/listing',      // uncomment if deploying under a subpath
-  // assetPrefix: '/apps/listing',   // uncomment if deploying under a subpath
+  basePath: '/apps/listing',
+  assetPrefix: '/apps/listing',
 }
 
 export default nextConfig
