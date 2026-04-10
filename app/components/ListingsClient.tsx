@@ -261,6 +261,7 @@ export default function ListingsClient({ listings, styles }: Props) {
                 ['颜色', selected.color    || '—'],
                 ['度数', selected.strength || '—'],
                 ['价格', selected.price    ? `£${selected.price}` : '—'],
+                ['库存', selected.quantity || '—'],
               ].map(([label, value]) => (
                 <div key={label} className="panel-field">
                   <div className="panel-field-label">{label}</div>
