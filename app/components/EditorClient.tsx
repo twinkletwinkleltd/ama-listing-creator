@@ -1,66 +1,29 @@
 'use client'
 
-import { useState, useEffect, useRef, Fragment } from 'react'
+import { useState, useEffect } from 'react'
 import KeywordSuggestions from '@/components/KeywordSuggestions'
 import { generateSingleCsv, downloadCsv } from '@/lib/exportCsv'
 
-// ─── Types ───────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface FormData {
-  // Tab 1 – Basic Info
-  itemName: string
-  brand: string
-  listingAction: string
-  price: string
-  quantity: string
-  parentage: string
-  parentSku: string
-  variationTheme: string
-  // Tab 2 – Content
+  itemName: string; brand: string; listingAction: string; price: string; quantity: string
+  parentage: string; parentSku: string; variationTheme: string
   bullet1: string; bullet2: string; bullet3: string; bullet4: string; bullet5: string
-  description: string
-  keywords: string
-  style: string
-  department: string
-  targetGender: string
-  // Tab 3 – Specs & Images
-  colorMap: string
-  color: string
-  strength: string
-  frameMaterial: string
-  frameType: string
-  itemShape: string
-  numberOfItems: string
-  packageQuantity: string
-  armLength: string
-  bridgeWidth: string
-  itemWeight: string
-  weightUnit: string
-  mainImage: string
-  image2: string; image3: string; image4: string
+  description: string; keywords: string; style: string; department: string; targetGender: string
+  colorMap: string; color: string; strength: string; frameMaterial: string; frameType: string
+  itemShape: string; numberOfItems: string; packageQuantity: string; armLength: string
+  bridgeWidth: string; itemWeight: string; weightUnit: string
+  mainImage: string; image2: string; image3: string; image4: string
   image5: string; image6: string; image7: string; image8: string
 }
 
 interface Listing {
-  sku: string
-  itemName: string
-  price: string
-  quantity: string
-  color: string
-  colorMap: string
-  strength: string
-  parentage: string
-  parentSku: string
-  variationTheme: string
-  mainImage: string
-  image2: string
-  image3: string
-  source: string
+  sku: string; itemName: string; price: string; quantity: string; color: string
+  colorMap: string; strength: string; parentage: string; parentSku: string
+  variationTheme: string; mainImage: string; image2: string; image3: string; source: string
 }
 
-interface Props {
-  initialListing: Listing | null
-  sku: string
-}
+interface Props { initialListing: Listing | null; sku: string }
 
 const EMPTY_FORM: FormData = {
   itemName: '', brand: 'TWINKLE TWINKLE', listingAction: 'Create new listing',
@@ -73,369 +36,227 @@ const EMPTY_FORM: FormData = {
   mainImage: '', image2: '', image3: '', image4: '', image5: '', image6: '', image7: '', image8: '',
 }
 
-const REQUIRED_KEYS: (keyof FormData)[] = ['itemName', 'price', 'quantity', 'mainImage']
-const SUGGESTED_KEYS: (keyof FormData)[] = [
-  'bullet1', 'bullet2', 'bullet3', 'bullet4', 'bullet5',
-  'description', 'keywords', 'color', 'strength',
-]
+const REQUIRED_KEYS: (keyof FormData)[]  = ['itemName', 'price', 'quantity', 'mainImage']
+const SUGGESTED_KEYS: (keyof FormData)[] = ['bullet1', 'bullet2', 'bullet3', 'bullet4', 'bullet5', 'description', 'keywords', 'color', 'strength']
 
-// ─── Small helpers ────────────────────────────────────────────────────
-function FieldLabel({ text, type = 'optional' }: { text: string; type?: 'required' | 'suggested' | 'optional' }) {
-  const color = type === 'required' ? '#cc0000' : type === 'suggested' ? '#b37a00' : '#000000'
-  return (
-    <label style={{ display: 'block', textAlign: 'right', fontSize: '11px', color, whiteSpace: 'nowrap' }}>
-      {type === 'required' ? '* ' : ''}{text}
-    </label>
-  )
-}
+// ─── Small helpers ─────────────────────────────────────────────────────────────
 
 function CharCount({ value, max }: { value: string; max: number }) {
-  const over = value.length > max
-  return (
-    <span style={{ fontSize: '10px', color: over ? '#cc0000' : '#808080', whiteSpace: 'nowrap', marginLeft: '4px', paddingTop: '3px' }}>
-      {value.length}/{max}
-    </span>
-  )
+  const cls = value.length > max ? 'over' : value.length > max * 0.9 ? 'warn' : 'ok'
+  return <span className={`field-char ${cls}`}>{value.length}/{max}</span>
 }
 
-function ReadonlyField({ label, value }: { label: string; value: string }) {
+function FieldRow({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
-    <div className="win98-field-row">
-      <FieldLabel text={label} />
-      <div style={{ flex: 1, fontSize: '11px', color: '#808080', padding: '2px 4px', border: '2px inset #d4d0c8', background: '#d4d0c8', minHeight: '21px' }}>
-        {value || '—'}
-      </div>
+    <div style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:6 }}>
+      <label style={{ fontSize:11, color: required ? '#dc2626' : '#666', whiteSpace:'nowrap', flexShrink:0, minWidth:90, textAlign:'right', paddingTop:7 }}>
+        {required ? '* ' : ''}{label}
+      </label>
+      {children}
     </div>
   )
 }
 
-function ImageInput({
-  label, value, onChange, required,
-}: { label: string; value: string; onChange: (v: string) => void; required?: boolean }) {
-  const [testStatus, setTestStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle')
+// ─── Main EditorClient ─────────────────────────────────────────────────────────
 
-  const handleTest = async () => {
-    if (!value.trim()) return
-    setTestStatus('checking')
-    try {
-      await fetch(value, { method: 'HEAD', mode: 'no-cors' })
-      setTestStatus('ok')
-    } catch {
-      setTestStatus('error')
-    }
-  }
-
-  const statusIcon = testStatus === 'checking' ? '⏳' : testStatus === 'ok' ? '✅' : testStatus === 'error' ? '❌' : null
-
-  const inp = 'border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 flex-1'
-  return (
-    <div className="flex flex-col gap-1.5">
-      <FieldLabel text={label} type={required ? 'required' : 'optional'} />
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => { onChange(e.target.value); setTestStatus('idle') }}
-          placeholder="https://..."
-          className={inp}
-        />
-        {value && (
-          <button
-            type="button"
-            onClick={handleTest}
-            className="text-xs px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0"
-          >
-            {statusIcon ?? '测试'}
-          </button>
-        )}
-        {value ? (
-          <a href={value} target="_blank" rel="noopener noreferrer">
-            <img
-              src={value}
-              alt=""
-              className="w-12 h-12 rounded object-cover border border-gray-200 bg-gray-100 flex-shrink-0"
-              onError={(e) => { ;(e.target as HTMLImageElement).src = '' }}
-            />
-          </a>
-        ) : (
-          <div className="w-12 h-12 rounded border border-dashed border-gray-200 bg-gray-50 flex-shrink-0" />
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─── Main EditorClient ────────────────────────────────────────────────
 export default function EditorClient({ initialListing, sku }: Props) {
   const buildInitialForm = (): FormData => {
     if (!initialListing) return EMPTY_FORM
     return {
       ...EMPTY_FORM,
-      itemName:       initialListing.itemName       ?? '',
-      price:          initialListing.price          ?? '',
-      quantity:       initialListing.quantity       ?? '',
-      color:          initialListing.color          ?? '',
-      colorMap:       initialListing.colorMap       ?? '',
-      strength:       initialListing.strength       ?? '',
-      parentage:      initialListing.parentage      ?? '',
-      parentSku:      initialListing.parentSku      ?? '',
+      itemName: initialListing.itemName ?? '', price: initialListing.price ?? '',
+      quantity: initialListing.quantity ?? '', color: initialListing.color ?? '',
+      colorMap: initialListing.colorMap ?? '', strength: initialListing.strength ?? '',
+      parentage: initialListing.parentage ?? '', parentSku: initialListing.parentSku ?? '',
       variationTheme: initialListing.variationTheme ?? '',
-      mainImage:      initialListing.mainImage      ?? '',
-      image2:         initialListing.image2         ?? '',
-      image3:         initialListing.image3         ?? '',
+      mainImage: initialListing.mainImage ?? '', image2: initialListing.image2 ?? '',
+      image3: initialListing.image3 ?? '',
     }
   }
 
   const [form, setForm] = useState<FormData>(buildInitialForm)
-  const [sidebarWidth, setSidebarWidth] = useState(180)
-  const dragging = useRef(false)
-  const dragStartX = useRef(0)
-  const dragStartWidth = useRef(0)
 
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!dragging.current) return
-      const delta = dragStartX.current - e.clientX
-      setSidebarWidth(Math.max(120, Math.min(420, dragStartWidth.current + delta)))
-    }
-    const onUp = () => { dragging.current = false }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-    }
-  }, [])
-
-  // Overlay localStorage draft on mount
   useEffect(() => {
     if (!sku) return
     try {
       const saved = localStorage.getItem(`draft:${sku}`)
-      if (saved) {
-        const draft = JSON.parse(saved) as Partial<FormData>
-        setForm((prev) => ({ ...prev, ...draft }))
-      }
+      if (saved) setForm((prev) => ({ ...prev, ...JSON.parse(saved) as Partial<FormData> }))
     } catch { /* ignore */ }
   }, [sku])
 
+  const set = (key: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }))
+
   const handleSaveDraft = () => {
-    const key = sku || 'new'
-    localStorage.setItem(`draft:${key}`, JSON.stringify(form))
-    alert(`草稿已保存 (${key})`)
+    localStorage.setItem(`draft:${sku || 'new'}`, JSON.stringify(form))
+    alert(`草稿已保存 (${sku || 'new'})`)
   }
 
   const handleExportCsv = () => {
-    const content = generateSingleCsv(form, sku)
-    downloadCsv(content, `${sku || 'new-listing'}-listing.csv`)
+    downloadCsv(generateSingleCsv(form, sku), `${sku || 'new-listing'}-listing.csv`)
   }
 
+  // Completeness
+  const reqFilled = REQUIRED_KEYS.filter((k) => !!form[k]).length
+  const sugFilled = SUGGESTED_KEYS.filter((k) => !!form[k]).length
+  const pct = Math.round(((reqFilled + sugFilled) / (REQUIRED_KEYS.length + SUGGESTED_KEYS.length)) * 100)
+
+  const inp = 'field-input-inline'
+
   return (
-    <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+    <>
+      {/* Toolbar */}
+      <div className="page-toolbar">
+        <span className="page-title">Editor</span>
+        {sku && <span className="sku-mono" style={{ background:'#e8f0fb', padding:'2px 10px', borderRadius:10 }}>{sku}</span>}
+        <div className="toolbar-spacer" />
+        <button className="btn-secondary" onClick={handleSaveDraft}>💾 保存草稿</button>
+        <button className="btn-primary" onClick={handleExportCsv}>⬆ 导出 CSV</button>
+        <button className="btn-secondary" onClick={() => setForm(EMPTY_FORM)}>✕ 重置</button>
+      </div>
 
-      {/* ─── Left: form fields (scrollable) ─── */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {/* Content */}
+      <div className="content-area">
 
-        {/* Current SKU indicator */}
-        <div style={{ fontSize: '11px', color: '#444444' }}>
-          {sku ? `编辑：${sku}` : '新建 Listing'}
-        </div>
+        {/* Form (left, scrollable) */}
+        <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:10 }}>
 
-        {/* ── Fieldset 1: Required ── */}
-        {(() => {
-          const R: React.CSSProperties = { display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px', flexWrap:'wrap' }
-          const C: React.CSSProperties = { display:'flex', alignItems:'center', gap:'4px' }
-          const F: React.CSSProperties = { display:'flex', alignItems:'center', gap:'4px', marginBottom:'4px' }
-          const lR: React.CSSProperties = { fontSize:'11px', color:'#cc0000', whiteSpace:'nowrap', flexShrink:0 }
-          const lO: React.CSSProperties = { fontSize:'11px', color:'#000', whiteSpace:'nowrap', flexShrink:0 }
-          return (
-          <fieldset>
-            <legend>* 必填 — 基本信息</legend>
-            <div style={F}>
-              <label style={lR}>* Item Name</label>
-              <input type="text" value={form.itemName} onChange={(e) => setForm((f) => ({ ...f, itemName: e.target.value }))} style={{ width:'320px', fontSize:'11px' }} />
+          {/* Card 1: Required — Basic Info */}
+          <div className="field-card">
+            <div className="field-card-label">* 必填 — 基本信息</div>
+            <FieldRow label="Item Name" required>
+              <input className={inp} type="text" value={form.itemName} onChange={set('itemName')} style={{ flex:1 }} />
               <CharCount value={form.itemName} max={200} />
-            </div>
-            <div style={R}>
-              <span style={C}><label style={lR}>* Brand Name</label><input type="text" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} style={{ width:'160px', fontSize:'11px' }} /></span>
-              <span style={C}><label style={lO}>SKU</label><span style={{ fontSize:'10px', fontFamily:'Courier New,monospace', color:'#808080', padding:'1px 4px', background:'#d4d0c8', border:'2px inset #d4d0c8' }}>{sku || '—'}</span></span>
-            </div>
-            <div style={R}>
-              <span style={C}><label style={lR}>* Price (£)</label><input type="text" value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} style={{ width:'80px', fontSize:'11px' }} /></span>
-              <span style={C}><label style={lR}>* Quantity</label><input type="text" value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))} style={{ width:'60px', fontSize:'11px' }} /></span>
-              <span style={C}><label style={lR}>* Listing Action</label>
-                <select value={form.listingAction} onChange={(e) => setForm((f) => ({ ...f, listingAction: e.target.value }))} style={{ fontSize:'11px' }}>
+            </FieldRow>
+            <FieldRow label="Brand Name" required>
+              <input className={inp} type="text" value={form.brand} onChange={set('brand')} style={{ width:160 }} />
+            </FieldRow>
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:6 }}>
+              <FieldRow label="Price (£)" required><input className={inp} type="text" value={form.price} onChange={set('price')} style={{ width:80 }} /></FieldRow>
+              <FieldRow label="Quantity" required><input className={inp} type="text" value={form.quantity} onChange={set('quantity')} style={{ width:60 }} /></FieldRow>
+              <FieldRow label="Action">
+                <select className={inp} value={form.listingAction} onChange={set('listingAction')}>
                   <option>Create new listing</option><option>Update</option><option>Delete</option>
                 </select>
-              </span>
-              <span style={C}><label style={lO}>Parentage</label>
-                <select value={form.parentage} onChange={(e) => setForm((f) => ({ ...f, parentage: e.target.value }))} style={{ fontSize:'11px' }}>
+              </FieldRow>
+              <FieldRow label="Parentage">
+                <select className={inp} value={form.parentage} onChange={set('parentage')}>
                   <option value="">—</option><option value="parent">Parent</option><option value="child">Child</option>
                 </select>
-              </span>
+              </FieldRow>
             </div>
-            <div style={F}><label style={lO}>Parent SKU</label><input type="text" value={form.parentSku} onChange={(e) => setForm((f) => ({ ...f, parentSku: e.target.value }))} style={{ width:'280px', fontSize:'11px' }} /></div>
-            <div style={F}><label style={lO}>Variation Theme</label><input type="text" value={form.variationTheme} onChange={(e) => setForm((f) => ({ ...f, variationTheme: e.target.value }))} style={{ width:'280px', fontSize:'11px' }} /></div>
-          </fieldset>
-          )
-        })()}
+            <FieldRow label="Parent SKU">
+              <input className={inp} type="text" value={form.parentSku} onChange={set('parentSku')} style={{ width:280 }} />
+            </FieldRow>
+            <FieldRow label="Variation Theme">
+              <input className={inp} type="text" value={form.variationTheme} onChange={set('variationTheme')} style={{ width:280 }} />
+            </FieldRow>
+          </div>
 
-        {/* ── Fieldset 2: Suggested ── */}
-        {(() => {
-          const F: React.CSSProperties = { display:'flex', alignItems:'flex-start', gap:'4px', marginBottom:'4px' }
-          const lS: React.CSSProperties = { fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap', flexShrink:0, paddingTop:'3px' }
-          const lO: React.CSSProperties = { fontSize:'11px', color:'#000', whiteSpace:'nowrap', flexShrink:0, paddingTop:'3px' }
-          const TA: React.CSSProperties = { width:'320px', fontSize:'11px', fontFamily:"'Pixelated MS Sans Serif','MS Sans Serif',Tahoma,sans-serif", height:'40px', resize:'vertical' }
-          return (
-          <fieldset>
-            <legend>建议 — 卖点内容</legend>
-            {([
-              { key:'bullet1' as const, label:'Bullet 1', max:200 },
-              { key:'bullet2' as const, label:'Bullet 2', max:200 },
-              { key:'bullet3' as const, label:'Bullet 3', max:200 },
-              { key:'bullet4' as const, label:'Bullet 4', max:200 },
-              { key:'bullet5' as const, label:'Bullet 5', max:200 },
-            ]).map(({ key, label, max }) => (
-              <div key={key} style={F}>
-                <label style={lS}>{label}</label>
-                <textarea value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={TA} />
-                <CharCount value={form[key]} max={max} />
-              </div>
+          {/* Card 2: Suggested — Content */}
+          <div className="field-card">
+            <div className="field-card-label">建议 — 卖点内容</div>
+            {(['bullet1','bullet2','bullet3','bullet4','bullet5'] as const).map((k, i) => (
+              <FieldRow key={k} label={`Bullet ${i + 1}`}>
+                <textarea className="field-input" value={form[k]} onChange={set(k)} rows={2} />
+                <CharCount value={form[k]} max={200} />
+              </FieldRow>
             ))}
-            <div style={F}><label style={lS}>Description</label><textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} style={{ ...TA, height:'56px' }} /><CharCount value={form.description} max={2000} /></div>
-            <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'4px' }}><label style={{ ...lS, paddingTop:0 }}>Keywords</label><input type="text" value={form.keywords} onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))} style={{ width:'320px', fontSize:'11px' }} /><CharCount value={form.keywords} max={250} /></div>
-            <div style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px', flexWrap:'wrap' }}>
-              <span style={{ display:'flex', alignItems:'center', gap:'4px' }}><label style={{ fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap' }}>Style</label><input type="text" value={form.style} onChange={(e) => setForm((f) => ({ ...f, style: e.target.value }))} style={{ width:'100px', fontSize:'11px' }} /></span>
-              <span style={{ display:'flex', alignItems:'center', gap:'4px' }}><label style={{ fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap' }}>Department</label><select value={form.department} onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))} style={{ fontSize:'11px' }}><option>Unisex Adults</option><option>Men</option><option>Women</option></select></span>
-              <span style={{ display:'flex', alignItems:'center', gap:'4px' }}><label style={{ fontSize:'11px', color:'#b37a00', whiteSpace:'nowrap' }}>Gender</label><select value={form.targetGender} onChange={(e) => setForm((f) => ({ ...f, targetGender: e.target.value }))} style={{ fontSize:'11px' }}><option>Unisex</option><option>Male</option><option>Female</option></select></span>
+            <FieldRow label="Description">
+              <textarea className="field-input" value={form.description} onChange={set('description')} rows={3} />
+              <CharCount value={form.description} max={2000} />
+            </FieldRow>
+            <FieldRow label="Keywords">
+              <input className={inp} type="text" value={form.keywords} onChange={set('keywords')} style={{ flex:1 }} />
+              <CharCount value={form.keywords} max={250} />
+            </FieldRow>
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+              <FieldRow label="Style"><input className={inp} type="text" value={form.style} onChange={set('style')} style={{ width:100 }} /></FieldRow>
+              <FieldRow label="Department">
+                <select className={inp} value={form.department} onChange={set('department')}>
+                  <option>Unisex Adults</option><option>Men</option><option>Women</option>
+                </select>
+              </FieldRow>
+              <FieldRow label="Gender">
+                <select className={inp} value={form.targetGender} onChange={set('targetGender')}>
+                  <option>Unisex</option><option>Male</option><option>Female</option>
+                </select>
+              </FieldRow>
             </div>
-          </fieldset>
-          )
-        })()}
+          </div>
 
-        {/* ── Fieldset 3: Specs & Images ── */}
-        {(() => {
-          const lO: React.CSSProperties = { fontSize:'11px', color:'#000', whiteSpace:'nowrap', flexShrink:0 }
-          const lR: React.CSSProperties = { fontSize:'11px', color:'#cc0000', whiteSpace:'nowrap', flexShrink:0 }
-          const specFields: { key: keyof FormData; label: string }[] = [
-            { key:'colorMap', label:'Color Map' }, { key:'color', label:'Color' }, { key:'strength', label:'Strength' },
-            { key:'frameMaterial', label:'Frame Mat.' }, { key:'frameType', label:'Frame Type' }, { key:'itemShape', label:'Item Shape' },
-            { key:'numberOfItems', label:'No. Items' }, { key:'packageQuantity', label:'Pkg Qty' }, { key:'armLength', label:'Arm Length' },
-            { key:'bridgeWidth', label:'Bridge Width' }, { key:'itemWeight', label:'Item Weight' },
-          ]
-          const imgFields: { key: keyof FormData; label: string; req?: boolean }[] = [
-            { key:'mainImage', label:'Main Image', req:true }, { key:'image2', label:'Image 2' },
-            { key:'image3', label:'Image 3' }, { key:'image4', label:'Image 4' },
-            { key:'image5', label:'Image 5' }, { key:'image6', label:'Image 6' },
-            { key:'image7', label:'Image 7' }, { key:'image8', label:'Image 8' },
-          ]
-          return (
-          <fieldset>
-            <legend>规格 — 规格图片</legend>
-            {/* Spec fields: 3 per row */}
-            {Array.from({ length: Math.ceil(specFields.length / 3) }, (_, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px', flexWrap:'wrap' }}>
-                {specFields.slice(i * 3, i * 3 + 3).map(({ key, label }) => (
-                  <span key={key} style={{ display:'flex', alignItems:'center', gap:'4px' }}>
-                    <label style={lO}>{label}</label>
-                    <input type="text" value={form[key] as string} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ width:'110px', fontSize:'11px' }} />
-                  </span>
-                ))}
-              </div>
-            ))}
-            {/* Image URLs: 2 per row */}
-            <div style={{ marginTop:'6px' }}>
-              {Array.from({ length: Math.ceil(imgFields.length / 2) }, (_, i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'4px' }}>
-                  {imgFields.slice(i * 2, i * 2 + 2).map(({ key, label, req }) => (
-                    <span key={key} style={{ display:'flex', alignItems:'center', gap:'4px', flex:1 }}>
-                      <label style={req ? lR : lO}>{req ? '* ' : ''}{label}</label>
-                      <input type="text" value={form[key] as string} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} placeholder="https://…" style={{ flex:1, fontSize:'11px' }} />
-                    </span>
-                  ))}
-                </div>
+          {/* Card 3: Specs + Images */}
+          <div className="field-card">
+            <div className="field-card-label">规格 + 图片</div>
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:8 }}>
+              {([
+                ['colorMap','Color Map'],['color','Color'],['strength','Strength'],
+                ['frameMaterial','Frame Mat.'],['frameType','Frame Type'],['itemShape','Item Shape'],
+                ['numberOfItems','No. Items'],['packageQuantity','Pkg Qty'],['armLength','Arm Length'],
+                ['bridgeWidth','Bridge Width'],['itemWeight','Item Weight'],
+              ] as [keyof FormData, string][]).map(([k, label]) => (
+                <FieldRow key={k} label={label}>
+                  <input className={inp} type="text" value={form[k] as string} onChange={set(k)} style={{ width:110 }} />
+                </FieldRow>
               ))}
             </div>
-          </fieldset>
-          )
-        })()}
+            {([
+              ['mainImage','主图 (1600×1600)',true],
+              ['image2','图 2'],['image3','图 3'],['image4','图 4'],
+              ['image5','图 5'],['image6','图 6'],['image7','图 7'],
+            ] as [keyof FormData, string, boolean?][]).map(([k, label, req]) => (
+              <FieldRow key={k} label={label} required={req}>
+                <input className={inp} type="text" value={form[k] as string} onChange={set(k)} placeholder="https://…" style={{ flex:1 }} />
+              </FieldRow>
+            ))}
+          </div>
 
-        {/* ── Action buttons ── */}
-        <div style={{ display: 'flex', gap: '4px', paddingBottom: '6px' }}>
-          <button onClick={handleSaveDraft} style={{ fontSize: '11px' }}>💾 保存草稿</button>
-          <button onClick={handleExportCsv} style={{ fontSize: '11px' }}>⬆ 导出此 SKU CSV</button>
-          <button onClick={() => setForm(EMPTY_FORM)} style={{ fontSize: '11px' }}>✕ 重置</button>
         </div>
+
+        {/* Right panel */}
+        <div className="side-panel">
+
+          {/* Completeness */}
+          <div>
+            <div className="panel-label" style={{ marginBottom:8 }}>完整度</div>
+            <div style={{ fontSize:22, fontWeight:800, color: pct >= 80 ? '#22c55e' : '#f59e0b', textAlign:'center', marginBottom:2 }}>{pct}%</div>
+            <div style={{ fontSize:10, color:'#aaa', textAlign:'center', marginBottom:10 }}>{pct >= 80 ? 'Almost ready' : 'In progress'}</div>
+            {[
+              { label:'必填', filled:reqFilled, total:REQUIRED_KEYS.length },
+              { label:'建议', filled:sugFilled, total:SUGGESTED_KEYS.length },
+            ].map(({ label, filled, total }) => (
+              <div key={label} className="meter-row" style={{ marginBottom:5 }}>
+                <div className={`meter-dot ${filled === total ? 'meter-dot-green' : 'meter-dot-amber'}`} />
+                <span style={{ flex:1 }}>{label} {filled}/{total}</span>
+                <div className="meter-bar">
+                  <div className={`meter-fill ${filled === total ? 'meter-fill-green' : 'meter-fill-amber'}`} style={{ width:`${(filled/total)*100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="panel-divider" />
+
+          {/* Keywords */}
+          <div>
+            <div className="panel-label" style={{ marginBottom:6 }}>关键词建议</div>
+            <KeywordSuggestions value={form.keywords} onChange={(v) => setForm((f) => ({ ...f, keywords: v }))} />
+          </div>
+
+          {/* Title preview */}
+          {form.itemName && (
+            <>
+              <div className="panel-divider" />
+              <div>
+                <div className="panel-label" style={{ marginBottom:6 }}>标题预览</div>
+                <div style={{ fontSize:11, color:'#1a3a6b', lineHeight:1.5, wordBreak:'break-word' }}>{form.itemName}</div>
+              </div>
+            </>
+          )}
+
+        </div>
+
       </div>
-
-      {/* ─── Resize handle ─── */}
-      <div
-        onMouseDown={(e) => {
-          dragging.current = true
-          dragStartX.current = e.clientX
-          dragStartWidth.current = sidebarWidth
-          e.preventDefault()
-        }}
-        style={{
-          width: '5px',
-          flexShrink: 0,
-          cursor: 'col-resize',
-          background: '#d4d0c8',
-          borderLeft: '1px solid #808080',
-          borderRight: '1px solid #ffffff',
-          margin: '0 2px',
-        }}
-        title="拖动调整宽度"
-      />
-
-      {/* ─── Right: preview panel ─── */}
-      <div style={{ width: `${sidebarWidth}px`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflow: 'hidden' }}>
-
-        {/* Completeness */}
-        <fieldset>
-          <legend>完整度</legend>
-          {(() => {
-            const reqFilled = REQUIRED_KEYS.filter((k) => !!form[k]).length
-            const sugFilled = SUGGESTED_KEYS.filter((k) => !!form[k]).length
-            const pct = Math.round(((reqFilled + sugFilled) / (REQUIRED_KEYS.length + SUGGESTED_KEYS.length)) * 100)
-            return (
-              <>
-                <div style={{ fontSize: '11px', marginBottom: '2px' }}>
-                  必填：{reqFilled}/{REQUIRED_KEYS.length} {reqFilled === REQUIRED_KEYS.length ? '✅' : ''}
-                </div>
-                <div style={{ fontSize: '11px', marginBottom: '4px' }}>
-                  建议：{sugFilled}/{SUGGESTED_KEYS.length}
-                </div>
-                <div className="win98-progress">
-                  <div className="win98-progress-fill" style={{ width: `${pct}%` }}>
-                    {pct}%
-                  </div>
-                </div>
-              </>
-            )
-          })()}
-        </fieldset>
-
-        {/* Keyword suggestions */}
-        <fieldset style={{ flex: 1 }}>
-          <legend>关键词建议</legend>
-          <KeywordSuggestions
-            value={form.keywords}
-            onChange={(v) => setForm((f) => ({ ...f, keywords: v }))}
-          />
-        </fieldset>
-
-        {/* Title preview */}
-        {form.itemName && (
-          <fieldset>
-            <legend>标题预览</legend>
-            <div style={{ fontSize: '10px', color: '#000080', lineHeight: '1.4', wordBreak: 'break-word' }}>
-              {form.itemName}
-            </div>
-          </fieldset>
-        )}
-      </div>
-
-    </div>
+    </>
   )
 }
