@@ -241,7 +241,8 @@ function DimensionsSection() {
   const generateCanvas = () => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')!
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
     canvas.width = 1600; canvas.height = 1600
     const cfg = templates[template]
     ctx.fillStyle = cfg.bg
@@ -256,6 +257,7 @@ function DimensionsSection() {
         ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh)
         cb()
       }
+      img.onerror = () => cb()
       img.src = src
     }
 
