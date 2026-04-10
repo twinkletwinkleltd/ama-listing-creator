@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import KeywordSuggestions from '@/components/KeywordSuggestions'
 import { generateSingleCsv, downloadCsv } from '@/lib/exportCsv'
 
@@ -23,7 +24,7 @@ interface Listing {
   variationTheme: string; mainImage: string; image2: string; image3: string; source: string
 }
 
-interface Props { initialListing: Listing | null; sku: string }
+interface Props { initialListing: Listing | null; sku: string; allSkus: string[] }
 
 const EMPTY_FORM: FormData = {
   itemName: '', brand: 'TWINKLE TWINKLE', listingAction: 'Create new listing',
@@ -59,7 +60,11 @@ function FieldRow({ label, required, children }: { label: string; required?: boo
 
 // ─── Main EditorClient ─────────────────────────────────────────────────────────
 
-export default function EditorClient({ initialListing, sku }: Props) {
+export default function EditorClient({ initialListing, sku, allSkus }: Props) {
+  const router = useRouter()
+  const currentIdx = allSkus.indexOf(sku)
+  const prevSku = currentIdx > 0 ? allSkus[currentIdx - 1] : null
+  const nextSku = currentIdx >= 0 && currentIdx < allSkus.length - 1 ? allSkus[currentIdx + 1] : null
   const buildInitialForm = (): FormData => {
     if (!initialListing) return EMPTY_FORM
     return {
@@ -109,6 +114,13 @@ export default function EditorClient({ initialListing, sku }: Props) {
       <div className="page-toolbar">
         <span className="page-title">Editor</span>
         {sku && <span className="sku-mono" style={{ background:'#e8f0fb', padding:'2px 10px', borderRadius:10 }}>{sku}</span>}
+        {allSkus.length > 0 && currentIdx >= 0 && (
+          <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:12, color:'#666' }}>
+            <button className="btn-secondary" style={{ padding:'2px 8px' }} disabled={!prevSku} onClick={() => prevSku && router.push(`/editor?sku=${prevSku}`)}>◀</button>
+            {currentIdx + 1} / {allSkus.length}
+            <button className="btn-secondary" style={{ padding:'2px 8px' }} disabled={!nextSku} onClick={() => nextSku && router.push(`/editor?sku=${nextSku}`)}>▶</button>
+          </span>
+        )}
         <div className="toolbar-spacer" />
         <button className="btn-secondary" onClick={handleSaveDraft}>💾 保存草稿</button>
         <button className="btn-primary" onClick={handleExportCsv}>⬆ 导出 CSV</button>
