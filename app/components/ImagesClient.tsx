@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Link from 'next/link'
 
 // Types
 interface Listing {
@@ -12,6 +11,10 @@ interface Listing {
   image2: string
   image3: string
   [key: string]: string
+}
+
+interface Props {
+  listings: Listing[]
 }
 
 interface DimData {
@@ -30,166 +33,150 @@ const PRESETS: Record<string, DimData> = {
   '2PR75': { lensWidth: '54', lensHeight: '42', bridgeWidth: '14', armLength: '142', totalWidth: '140', totalHeight: '46', weight: '30' },
 }
 
-const NAV_ITEMS = [
-  { id: 'photos', icon: '📸', label: '产品图片' },
-  { id: 'dimensions', icon: '📐', label: '尺寸图生成器' },
-  { id: 'video', icon: '🎬', label: '视频' },
-  { id: 'specs', icon: '📋', label: '图片规范' },
-]
+const SLOT_LABELS = ['Main', 'Side', '3/4', 'Detail', 'On-model', 'Infographic', 'Lifestyle']
 
-// Style constants
-const CARD: React.CSSProperties = {
-  background: '#d4d0c8',
-  borderTop: '2px solid #ffffff',
-  borderLeft: '2px solid #ffffff',
-  borderRight: '2px solid #808080',
-  borderBottom: '2px solid #808080',
-  padding: '8px',
-  marginBottom: '6px',
+const SLOT_REQUIREMENTS: Record<number, string[]> = {
+  0: ['1600×1600 px', '背景抠白', 'JPEG or PNG', 'Product fills 85%+'],
 }
-const PRIMARY_BTN: React.CSSProperties = {
-  fontSize: '11px',
-  cursor: 'pointer',
-  fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif",
-}
-const SECONDARY_BTN: React.CSSProperties = {
-  fontSize: '11px',
-  cursor: 'pointer',
-  fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif",
-}
-const INPUT: React.CSSProperties = {
-  fontSize: '11px',
-  fontFamily: "'Pixelated MS Sans Serif', 'MS Sans Serif', Tahoma, sans-serif",
-  width: '100%',
-}
+const DEFAULT_REQUIREMENTS = ['Min 1200×1200 px', 'JPEG or PNG']
 
-// ── Image URL Row ──
-function ImageRow({ label, url, onChange, isMain }: { label: string; url: string; onChange: (v: string) => void; isMain: boolean }) {
-  const [status, setStatus] = useState<'idle' | 'checking' | 'ok' | 'warn'>('idle')
-  const [dims, setDims] = useState<string>('')
-
-  const checkImage = () => {
-    if (!url) return
-    setStatus('checking')
-    const img = new Image()
-    img.onload = () => {
-      const w = img.naturalWidth, h = img.naturalHeight
-      setDims(`${w}×${h}`)
-      const minW = isMain ? 1600 : 1200
-      setStatus(w >= minW && h >= minW ? 'ok' : 'warn')
-    }
-    img.onerror = () => setStatus('warn')
-    img.src = url
-  }
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 0', borderBottom: '1px solid #f6f8fa' }}>
-      <span style={{ fontSize: '11px', color: '#6b7a8d', width: '60px', flexShrink: 0 }}>{label}</span>
-      <input
-        type="text" value={url} onChange={e => onChange(e.target.value)}
-        placeholder="https://..."
-        style={{ ...INPUT, flex: 1 }}
-      />
-      {url && (
-        <>
-          <button onClick={checkImage} style={{ ...SECONDARY_BTN, padding: '2px 8px', fontSize: '11px', flexShrink: 0 }}>
-            {status === 'checking' ? '⏳' : status === 'ok' ? '✅' : status === 'warn' ? '🟡' : '测试'}
-          </button>
-          {dims && <span style={{ fontSize: '10px', color: '#6b7a8d', flexShrink: 0 }}>{dims}</span>}
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            <img src={url} alt="" style={{ width: '24px', height: '24px', objectFit: 'cover', border: '1px solid #d0d7de', borderRadius: '2px', flexShrink: 0 }} />
-          </a>
-        </>
-      )}
-    </div>
-  )
-}
-
-// ── Section 1: Photos ──
 function PhotosSection({ listings }: { listings: Listing[] }) {
-  const [selectedSku, setSelectedSku] = useState<string | null>(null)
+  const [activeStyle, setActiveStyle] = useState<string>('all')
+  const [selectedSlot, setSelectedSlot] = useState<{ sku: string; idx: number } | null>(null)
 
   const [urls, setUrls] = useState<Record<string, string[]>>(() => {
     const init: Record<string, string[]> = {}
     for (const l of listings) {
-      init[l.sku] = [l.mainImage || '', l.image2 || '', l.image3 || '', '', '', '', '', '']
+      init[l.sku] = [
+        l.mainImage || '', l.image2 || '', l.image3 || '',
+        '', '', '', '',
+      ]
     }
     return init
   })
 
-  const setUrl = (sku: string, idx: number, v: string) => {
+  const setUrl = (sku: string, idx: number, v: string) =>
     setUrls(prev => ({ ...prev, [sku]: prev[sku].map((u, i) => i === idx ? v : u) }))
+
+  const styles = Array.from(new Set(listings.map(l => l.parentSku)))
+
+  const visibleListings = activeStyle === 'all'
+    ? listings
+    : listings.filter(l => l.parentSku === activeStyle)
+
+  const grouped: Record<string, Listing[]> = {}
+  for (const l of visibleListings) {
+    const key = l.color || l.parentSku
+    if (!grouped[key]) grouped[key] = []
+    grouped[key].push(l)
   }
 
-  const selected = listings.find(l => l.sku === selectedSku)
+  const selListing = selectedSlot ? listings.find(l => l.sku === selectedSlot.sku) : null
+  const selUrls    = selectedSlot ? (urls[selectedSlot.sku] || []) : []
+  const selUrl     = selectedSlot ? (selUrls[selectedSlot.idx] || '') : ''
 
-  // ── Detail view ──
-  if (selectedSku && selected) {
-    const filled = (urls[selected.sku] || []).filter(Boolean).length
-    return (
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <button onClick={() => setSelectedSku(null)} style={{ fontSize: '11px' }}>← 返回列表</button>
-          <span className="sku-mono" style={{ fontSize: '11px' }}>{selected.sku}</span>
-          <span style={{ fontSize: '11px', color: '#444' }}>— {selected.color || selected.parentSku}</span>
-          <span style={{ fontSize: '10px', color: filled === 8 ? '#006400' : '#808080', marginLeft: 'auto' }}>
-            {filled}/8 张已填
-          </span>
-        </div>
-        <fieldset>
-          <legend>图片 URL</legend>
-          <div style={{ fontSize: '10px', color: '#808080', marginBottom: '6px' }}>
-            主图：建议 1600×1600px 纯白底 &nbsp;|&nbsp; 副图：建议 1200×1200px+
-          </div>
-          {(urls[selected.sku] || []).map((url, i) => (
-            <ImageRow
-              key={i}
-              label={i === 0 ? '主图' : `图 ${i + 1}`}
-              url={url}
-              onChange={v => setUrl(selected.sku, i, v)}
-              isMain={i === 0}
-            />
-          ))}
-        </fieldset>
-      </div>
-    )
-  }
-
-  // ── Master list view ──
   return (
-    <div>
-      <div style={{ fontSize: '11px', color: '#444', marginBottom: '4px' }}>
-        共 {listings.length} 条 — 点击行进入编辑图片
+    <div className="content-area">
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span className="page-title" style={{ fontSize: 13 }}>图片</span>
+          <button className={`filter-pill${activeStyle === 'all' ? ' active' : ''}`} onClick={() => setActiveStyle('all')}>All</button>
+          {styles.map(s => (
+            <button key={s} className={`filter-pill${activeStyle === s ? ' active' : ''}`} onClick={() => setActiveStyle(s)}>{s}</button>
+          ))}
+        </div>
+
+        {Object.entries(grouped).map(([colorKey, colorListings]) => {
+          const totalSlots = colorListings.length * 7
+          const filledSlots = colorListings.reduce((acc, l) => acc + (urls[l.sku] || []).filter(Boolean).length, 0)
+          const complete = filledSlots === totalSlots
+
+          return (
+            <div key={colorKey} style={{ marginBottom: 20 }}>
+              <div className="color-group-header">
+                <div className="color-swatch" style={{ background: colorKey.toLowerCase() === 'black' ? '#222' : colorKey.toLowerCase() === 'brown' ? '#7c5230' : colorKey.toLowerCase() === 'gold' ? '#b8860b' : '#888' }} />
+                {colorKey}
+                <span style={{ fontSize: 11, color: complete ? '#22c55e' : '#f59e0b', fontWeight: 400 }}>
+                  {filledSlots}/{totalSlots} &nbsp;·&nbsp; {complete ? '✓ Complete' : '⚠ Missing'}
+                </span>
+              </div>
+
+              {colorListings.map(l => (
+                <div key={l.sku} style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 6 }}>
+                    <span className="sku-mono">{l.sku}</span>
+                  </div>
+                  <div className="img-slot-grid">
+                    {SLOT_LABELS.map((label, idx) => {
+                      const url = (urls[l.sku] || [])[idx] || ''
+                      const isSel = selectedSlot?.sku === l.sku && selectedSlot?.idx === idx
+                      return (
+                        <div key={idx} className="img-slot" onClick={() => setSelectedSlot({ sku: l.sku, idx })}>
+                          <div className={`img-slot-box ${url ? 'slot-filled' : 'slot-empty'}${isSel ? ' slot-selected' : ''}`}>
+                            <span className="slot-num">{idx + 1}</span>
+                            {url ? (
+                              <>
+                                <img src={url} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }} />
+                                <span className="slot-check">✓</span>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: 18, color: '#ccc' }}>+</span>
+                            )}
+                          </div>
+                          <div className={`slot-label${!url ? ' missing' : ''}`}>{label}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        })}
       </div>
-      <div style={{ border: '2px inset #d4d0c8', background: '#ffffff', overflow: 'auto' }}>
-        <table className="win98-listview" style={{ border: 'none', width: '100%' }}>
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>款式</th>
-              <th>颜色</th>
-              <th style={{ textAlign: 'center' }}>图片</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listings.map(l => {
-              const filled = (urls[l.sku] || []).filter(Boolean).length
-              return (
-                <tr key={l.sku} onClick={() => setSelectedSku(l.sku)} style={{ cursor: 'pointer' }}>
-                  <td className="sku-mono">{l.sku}</td>
-                  <td>{l.parentSku}</td>
-                  <td>{l.color || '—'}</td>
-                  <td style={{ textAlign: 'center', color: filled === 0 ? '#cc0000' : filled === 8 ? '#006400' : '#444' }}>
-                    {filled}/8
-                  </td>
-                </tr>
-              )
-            })}
-            {listings.length === 0 && (
-              <tr><td colSpan={4} style={{ padding: '12px', textAlign: 'center', color: '#808080' }}>暂无数据</td></tr>
-            )}
-          </tbody>
-        </table>
+
+      <div className="side-panel">
+        {selectedSlot && selListing ? (
+          <>
+            <div>
+              <div className="panel-label">Selected</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#333', marginTop: 4 }}>Slot {selectedSlot.idx + 1} — {SLOT_LABELS[selectedSlot.idx]}</div>
+              <div className="sku-mono" style={{ marginTop: 2 }}>{selListing.sku}</div>
+            </div>
+
+            <div className="panel-image-box">
+              {selUrl ? (
+                <img src={selUrl} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              ) : (
+                <span>No image</span>
+              )}
+            </div>
+
+            <div>
+              <div className="panel-label" style={{ marginBottom: 5 }}>Image URL</div>
+              <input
+                type="text" value={selUrl} placeholder="https://…"
+                onChange={e => setUrl(selectedSlot.sku, selectedSlot.idx, e.target.value)}
+                style={{ width: '100%', border: '1px solid #e0e7ef', borderRadius: 5, padding: '5px 8px', fontSize: 11, fontFamily: 'inherit' }}
+              />
+            </div>
+
+            <div>
+              <div className="panel-label" style={{ marginBottom: 5 }}>Requirements</div>
+              {(SLOT_REQUIREMENTS[selectedSlot.idx] || DEFAULT_REQUIREMENTS).map(r => (
+                <div key={r} style={{ fontSize: 11, color: '#555', marginBottom: 2 }}>{r}</div>
+              ))}
+            </div>
+
+            <div className="panel-divider" />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <button className="btn-secondary" onClick={() => setSelectedSlot(null)} style={{ width: '100%' }}>← Back</button>
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: 20, textAlign: 'center', color: '#aaa', fontSize: 12 }}>点击左侧槽位查看详情</div>
+        )}
       </div>
     </div>
   )
@@ -346,11 +333,11 @@ function DimensionsSection() {
   ]
 
   return (
-    <div>
-      <h3 style={{ marginBottom: '8px' }}>尺寸图生成器</h3>
+    <div style={{ overflowY: 'auto', padding: '0 4px' }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: '#1a2332', marginBottom: 12 }}>尺寸图生成器</div>
 
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>Step 1：上传图片</h4>
+      <div className="field-card" style={{ marginBottom: 12 }}>
+        <div className="field-card-label" style={{ marginBottom: 6 }}>Step 1：上传图片</div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '12px', color: '#6b7a8d', marginBottom: '4px' }}>正面图</div>
@@ -383,8 +370,8 @@ function DimensionsSection() {
         </div>
       </div>
 
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>Step 2：输入尺寸数据</h4>
+      <div className="field-card" style={{ marginBottom: 12 }}>
+        <div className="field-card-label" style={{ marginBottom: 6 }}>Step 2：输入尺寸数据</div>
         <div style={{ marginBottom: '10px' }}>
           <label style={{ fontSize: '12px', color: '#1a2332', marginRight: '8px' }}>款式预设：</label>
           <select
@@ -413,7 +400,7 @@ function DimensionsSection() {
                     type="text"
                     value={dims[f.key]}
                     onChange={e => setDims(prev => ({ ...prev, [f.key]: e.target.value }))}
-                    style={{ ...INPUT, width: '80px' }}
+                    style={{ fontSize: '11px', width: '80px' }}
                   />
                 </td>
                 <td style={{ padding: '5px 8px', border: '1px solid #d0d7de', color: '#6b7a8d' }}>{f.unit}</td>
@@ -423,8 +410,8 @@ function DimensionsSection() {
         </table>
       </div>
 
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>Step 3：选择标注风格</h4>
+      <div className="field-card" style={{ marginBottom: 12 }}>
+        <div className="field-card-label" style={{ marginBottom: 6 }}>Step 3：选择标注风格</div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {[
             { id: 'white', label: '简洁白底', desc: '白底+黑色标注线' },
@@ -435,7 +422,7 @@ function DimensionsSection() {
               key={t.id}
               onClick={() => setTemplate(t.id as 'white' | 'dark' | 'amazon')}
               style={{
-                flex: 1, border: `2px solid ${template === t.id ? '#0078d4' : '#d0d7de'}`,
+                flex: 1, border: `2px solid ${template === t.id ? '#1a6bb5' : '#e0e7ef'}`,
                 borderRadius: '4px', padding: '10px', cursor: 'pointer', textAlign: 'center',
                 background: template === t.id ? '#e8f4fd' : '#fafbfc'
               }}
@@ -447,9 +434,9 @@ function DimensionsSection() {
         </div>
       </div>
 
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>Step 4：生成预览</h4>
-        <button onClick={generateCanvas} style={{ ...PRIMARY_BTN, marginBottom: '10px' }}>
+      <div className="field-card" style={{ marginBottom: 12 }}>
+        <div className="field-card-label" style={{ marginBottom: 6 }}>Step 4：生成预览</div>
+        <button className="btn-primary" onClick={generateCanvas} style={{ marginBottom: '10px' }}>
           生成尺寸图
         </button>
         <canvas
@@ -459,12 +446,12 @@ function DimensionsSection() {
       </div>
 
       {generated && (
-        <div style={CARD}>
-          <h4 style={{ marginBottom: '6px' }}>Step 5：下载</h4>
+        <div className="field-card" style={{ marginBottom: 12 }}>
+          <div className="field-card-label" style={{ marginBottom: 6 }}>Step 5：下载</div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => download('png')} style={PRIMARY_BTN}>下载尺寸图 PNG</button>
-            <button onClick={() => download('jpeg')} style={SECONDARY_BTN}>下载尺寸图 JPG</button>
-            <button onClick={saveDims} style={{ ...SECONDARY_BTN, marginLeft: 'auto' }}>💾 保存尺寸数据</button>
+            <button className="btn-primary" onClick={() => download('png')}>下载尺寸图 PNG</button>
+            <button className="btn-secondary" onClick={() => download('jpeg')}>下载尺寸图 JPG</button>
+            <button className="btn-secondary" onClick={saveDims} style={{ marginLeft: 'auto' }}>💾 保存尺寸数据</button>
           </div>
         </div>
       )}
@@ -472,160 +459,27 @@ function DimensionsSection() {
   )
 }
 
-// ── Section 3: Video ──
-function VideoSection() {
-  const [url, setUrl] = useState('')
-  const [checks, setChecks] = useState<Record<string, boolean>>({})
-  const items = [
-    '产品从包装盒取出展示', '正面/侧面/45度角展示', '弹簧铰链开合展示',
-    '佩戴效果展示', '多色款展示', '尺寸对比展示（放在手掌上等）',
-    '使用场景（阅读/手机/电脑）'
-  ]
+const NAV_ITEMS = [
+  { id: 'photos',     icon: '📸', label: '产品图片' },
+  { id: 'dimensions', icon: '📐', label: '尺寸图生成器' },
+]
+
+export default function ImagesClient({ listings }: Props) {
+  const [activeSection, setActiveSection] = useState('photos')
 
   return (
-    <div>
-      <h3 style={{ marginBottom: '8px' }}>视频</h3>
-      <div style={{ ...CARD, background: '#e8f4fd', border: '1px solid #b3d9f5' }}>
-        <div style={{ fontSize: '12px', fontWeight: 600, color: '#0078d4', marginBottom: '4px' }}>Amazon视频规范</div>
-        <div style={{ fontSize: '11px', color: '#1a2332', lineHeight: '1.6' }}>
-          格式：MP4, MOV &nbsp;|&nbsp; 最大时长：45秒 &nbsp;|&nbsp; 文件大小：&lt;5GB<br />
-          分辨率：1920×1080（16:9）或 3840×2160（4K）<br />
-          建议内容：产品展示、使用场景、功能演示
-        </div>
-      </div>
-
-      <div style={CARD}>
-        <div style={{ fontSize: '12px', color: '#6b7a8d', marginBottom: '8px', lineHeight: '1.5' }}>
-          Amazon视频需在 Seller Central {'>'} A+ Content {'>'} Video 上传<br />
-          上传后将视频URL填入下方
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <input
-            type="text" value={url} onChange={e => setUrl(e.target.value)}
-            placeholder="视频URL..."
-            style={{ ...INPUT, flex: 1 }}
-          />
-          <span style={{ fontSize: '11px', background: '#fff8e1', border: '1px solid #f7a800', borderRadius: '3px', padding: '2px 6px', color: '#b37a00', flexShrink: 0 }}>
-            🟡 建议
-          </span>
-        </div>
-      </div>
-
-      <div style={CARD}>
-        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a2332', marginBottom: '8px' }}>视频内容建议清单</div>
-        {items.map(item => (
-          <label key={item} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '13px', color: '#1a2332', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={!!checks[item]}
-              onChange={e => setChecks(prev => ({ ...prev, [item]: e.target.checked }))}
-            />
-            {item}
-          </label>
-        ))}
-        <div style={{ fontSize: '11px', color: '#6b7a8d', marginTop: '8px' }}>建议时长：30-45秒</div>
-      </div>
-    </div>
-  )
-}
-
-// ── Section 4: Specs ──
-function SpecsSection() {
-  return (
-    <div>
-      <h3 style={{ marginBottom: '8px' }}>图片规范</h3>
-
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>🔴 主图规范（严格要求）</h4>
-        <ul style={{ fontSize: '12px', color: '#1a2332', lineHeight: '1.8', paddingLeft: '16px' }}>
-          <li>纯白背景（RGB 255,255,255）</li>
-          <li>产品占图片 85% 以上</li>
-          <li>最小尺寸：500×500px</li>
-          <li>建议尺寸：<strong>1600×1600px</strong>（可缩放）</li>
-          <li>格式：JPG（首选）、PNG、GIF（非动图）</li>
-          <li style={{ color: '#d13438' }}>禁止：水印、Logo覆盖、边框、文字覆盖</li>
-        </ul>
-      </div>
-
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>🟡 副图规范（建议）</h4>
-        <ul style={{ fontSize: '12px', color: '#1a2332', lineHeight: '1.8', paddingLeft: '16px' }}>
-          <li>最小：1000×1000px</li>
-          <li>建议：1200-2000px</li>
-          <li>可以有生活场景、文字标注、对比图</li>
-        </ul>
-      </div>
-
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>📸 7张图最佳实践</h4>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-          <tbody>
-            {[
-              ['图1 主图', '纯白底正面图（必须）', '#d13438'],
-              ['图2 副图', '纯白底侧面图', '#6b7a8d'],
-              ['图3 副图', '纯白底45度图', '#6b7a8d'],
-              ['图4 尺寸图', '标注镜片宽/臂长/鼻梁（程序生成）', '#0078d4'],
-              ['图5 细节图', '弹簧铰链/镜片特写', '#6b7a8d'],
-              ['图6 场景图', '书桌阅读/户外场景（AI生成）', '#6b7a8d'],
-              ['图7 多色图', '所有颜色并排展示', '#6b7a8d'],
-            ].map(([label, desc, color], i) => (
-              <tr key={i} style={{ background: i % 2 === 0 ? '#f6f8fa' : '#fff' }}>
-                <td style={{ padding: '6px 8px', border: '1px solid #d0d7de', fontWeight: 600, color: color as string, width: '100px' }}>{label}</td>
-                <td style={{ padding: '6px 8px', border: '1px solid #d0d7de', color: '#1a2332' }}>{desc}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div style={CARD}>
-        <h4 style={{ marginBottom: '6px' }}>💡 ChatGPT生图提示词</h4>
-        <div style={{ marginBottom: '10px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 600, color: '#0078d4', marginBottom: '4px' }}>书桌场景：</div>
-          <pre style={{ fontSize: '11px', color: '#1a2332', background: '#f6f8fa', border: '1px solid #d0d7de', borderRadius: '3px', padding: '8px', whiteSpace: 'pre-wrap', margin: 0 }}>
-{`Professional product photography of reading glasses placed on a clean wooden desk next to an open book and a cup of coffee, soft natural window light, warm cozy atmosphere, photorealistic, high resolution, no text, white background optional`}
-          </pre>
-        </div>
-        <div>
-          <div style={{ fontSize: '12px', fontWeight: 600, color: '#0078d4', marginBottom: '4px' }}>模特佩戴：</div>
-          <pre style={{ fontSize: '11px', color: '#1a2332', background: '#f6f8fa', border: '1px solid #d0d7de', borderRadius: '3px', padding: '8px', whiteSpace: 'pre-wrap', margin: 0 }}>
-{`Middle-aged person wearing stylish reading glasses, natural smile, reading a book indoors, soft lighting, lifestyle photography, professional commercial photo, realistic`}
-          </pre>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Main ImagesClient ──
-export default function ImagesClient({ listings }: { listings: Listing[] }) {
-  const [section, setSection] = useState('photos')
-
-  return (
-    <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-
-      {/* Internal sidebar */}
-      <div className="win98-img-sidebar">
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setSection(item.id)}
-            className={section === item.id ? 'active' : ''}
-          >
-            <span>{item.icon}</span>
-            <span style={{ fontSize: '10px' }}>{item.label}</span>
+    <>
+      <div className="page-toolbar">
+        <span className="page-title">Images</span>
+        {NAV_ITEMS.map(item => (
+          <button key={item.id} className={`filter-pill${activeSection === item.id ? ' active' : ''}`} onClick={() => setActiveSection(item.id)}>
+            {item.icon} {item.label}
           </button>
         ))}
       </div>
 
-      {/* Content */}
-      <div className="win98-img-content" style={{ padding: '6px' }}>
-        {section === 'photos' && <PhotosSection listings={listings} />}
-        {section === 'dimensions' && <DimensionsSection />}
-        {section === 'video' && <VideoSection />}
-        {section === 'specs' && <SpecsSection />}
-      </div>
-
-    </div>
+      {activeSection === 'photos'     && <PhotosSection listings={listings} />}
+      {activeSection === 'dimensions' && <DimensionsSection />}
+    </>
   )
 }
