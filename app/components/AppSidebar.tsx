@@ -22,7 +22,7 @@ export default function AppSidebar() {
         <span>🖼</span> Images
       </Link>
       <div className="sidebar-spacer" />
-      <a href="http://localhost:5000/apps" className="sidebar-back">← Back to APPs</a>
+      <a href="https://ordercleaner.twinkletwinkle.uk/apps" className="sidebar-back">← Back to APPs</a>
     </nav>
   )
 }
