@@ -172,6 +172,9 @@ function PhotosSection({ listings }: { listings: Listing[] }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               <button className="btn-secondary" onClick={() => setSelectedSlot(null)} style={{ width: '100%' }}>← Back</button>
+              {selUrl && (
+                <button className="btn-secondary" onClick={() => setUrl(selectedSlot.sku, selectedSlot.idx, '')} style={{ width: '100%', color: '#dc2626' }}>✕ Remove Image</button>
+              )}
             </div>
           </>
         ) : (
