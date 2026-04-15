@@ -38,6 +38,7 @@ function getStatus(listing: any): 'green' | 'amber' | 'red' {
 
 export default function ProductList({ listings, styles, selectedSku, onSelect }: ProductListProps) {
   const [search, setSearch] = useState('');
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -60,12 +61,39 @@ export default function ProductList({ listings, styles, selectedSku, onSelect }:
     return Array.from(map.entries());
   }, [filtered]);
 
+  // Auto-expand group when selectedSku is inside it
+  const selectedGroup = selectedSku
+    ? listings.find((l) => l.sku === selectedSku)?.parentSku ?? null
+    : null;
+
+  function toggleGroup(parentSku: string) {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(parentSku)) next.delete(parentSku);
+      else next.add(parentSku);
+      return next;
+    });
+  }
+
+  function isExpanded(parentSku: string): boolean {
+    return expandedGroups.has(parentSku) || parentSku === selectedGroup;
+  }
+
   return (
     <div className="left-panel">
       <div className="left-header">
         <h3>
           Products <span className="zh">产品列表</span>
         </h3>
+        <button
+          className="btn-new-listing"
+          onClick={() => {
+            // TODO: implement new listing creation
+            alert('New Listing — coming soon / 新建功能即将上线')
+          }}
+        >
+          + New Listing <span className="zh">新建产品</span>
+        </button>
         <input
           className="search-box"
           type="text"
@@ -76,33 +104,41 @@ export default function ProductList({ listings, styles, selectedSku, onSelect }:
       </div>
 
       <div className="left-list">
-        {groups.map(([parentSku, variants]) => (
-          <div key={parentSku}>
-            <div className="group-head">
-              {parentSku}
-              <span className="count">
-                {variants.length} variant{variants.length !== 1 ? 's' : ''} / 变体
-              </span>
+        {groups.map(([parentSku, variants]) => {
+          const open = isExpanded(parentSku);
+          return (
+            <div key={parentSku}>
+              <div
+                className="group-head"
+                onClick={() => toggleGroup(parentSku)}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="group-arrow">{open ? '▼' : '▶'}</span>
+                {parentSku}
+                <span className="count">
+                  {variants.length} variant{variants.length !== 1 ? 's' : ''} / 变体
+                </span>
+              </div>
+              {open && variants.map((listing) => {
+                const status = getStatus(listing);
+                return (
+                  <div
+                    key={listing.sku}
+                    className={`var-row${listing.sku === selectedSku ? ' active' : ''}`}
+                    onClick={() => onSelect(listing.sku)}
+                  >
+                    <span
+                      className="color-dot"
+                      style={{ backgroundColor: colorToHex(listing.color ?? '') }}
+                    />
+                    <span className="var-name">{listing.color ?? listing.sku}</span>
+                    <span className={`status-dot st-${status}`} />
+                  </div>
+                );
+              })}
             </div>
-            {variants.map((listing) => {
-              const status = getStatus(listing);
-              return (
-                <div
-                  key={listing.sku}
-                  className={`var-row${listing.sku === selectedSku ? ' active' : ''}`}
-                  onClick={() => onSelect(listing.sku)}
-                >
-                  <span
-                    className="color-dot"
-                    style={{ backgroundColor: colorToHex(listing.color ?? '') }}
-                  />
-                  <span className="var-name">{listing.color ?? listing.sku}</span>
-                  <span className={`status-dot st-${status}`} />
-                </div>
-              );
-            })}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

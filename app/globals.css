@@ -82,6 +82,35 @@ html, body {
   font-weight: 400;
   color: #666;
 }
+/* New listing button */
+.btn-new-listing {
+  width: 100%;
+  padding: 9px 14px;
+  margin-bottom: 10px;
+  background: #353535;
+  border: 1.5px dashed #555;
+  border-radius: 7px;
+  color: #aaa;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-new-listing:hover {
+  background: #3c3c3c;
+  border-color: #888;
+  color: #e8e8e8;
+}
+.btn-new-listing .zh {
+  font-size: 13px;
+  font-weight: 400;
+  color: #666;
+}
+
 .search-box {
   width: 100%;
   background: #353535;
@@ -119,6 +148,13 @@ html, body {
   gap: 6px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+}
+.group-head .group-arrow {
+  font-size: 10px;
+  color: #666;
+  margin-right: 4px;
+  flex-shrink: 0;
+  width: 12px;
 }
 .group-head .count {
   font-size: 12px;
