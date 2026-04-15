@@ -87,12 +87,11 @@ export default function ProductList({ listings, styles, selectedSku, onSelect }:
         </h3>
         <button
           className="btn-new-listing"
-          onClick={() => {
-            // TODO: implement new listing creation
-            alert('New Listing — coming soon / 新建功能即将上线')
-          }}
+          disabled
+          title="Coming soon — this feature is under development / 功能开发中"
+          style={{ opacity: 0.5, cursor: 'not-allowed' }}
         >
-          + New Listing <span className="zh">新建产品</span>
+          + New Listing <span className="zh">新建产品（开发中）</span>
         </button>
         <input
           className="search-box"
@@ -131,7 +130,10 @@ export default function ProductList({ listings, styles, selectedSku, onSelect }:
                       className="color-dot"
                       style={{ backgroundColor: colorToHex(listing.color ?? '') }}
                     />
-                    <span className="var-name">{listing.color ?? listing.sku}</span>
+                    <span className="var-name">
+                      {listing.color ?? listing.sku}
+                      {listing.strength ? <span style={{color:'#666',marginLeft:4,fontSize:12}}>+{listing.strength}</span> : null}
+                    </span>
                     <span className={`status-dot st-${status}`} />
                   </div>
                 );

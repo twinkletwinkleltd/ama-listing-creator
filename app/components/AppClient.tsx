@@ -74,8 +74,8 @@ export default function AppClient({ listings, styles }: AppClientProps) {
         const draft = JSON.parse(raw)
         Object.assign(base, draft)
       }
-    } catch {
-      // ignore parse errors
+    } catch (e) {
+      console.error('Failed to load draft:', e)
     }
 
     setForm(base)
@@ -88,8 +88,13 @@ export default function AppClient({ listings, styles }: AppClientProps) {
 
   const handleSave = () => {
     if (!selectedSku) return
-    localStorage.setItem('draft:' + selectedSku, JSON.stringify(form))
-    setLastSaved(formatTime(new Date()))
+    try {
+      localStorage.setItem('draft:' + selectedSku, JSON.stringify(form))
+      setLastSaved(formatTime(new Date()))
+    } catch (e) {
+      console.error('Failed to save draft:', e)
+      setLastSaved('Save failed / 保存失败')
+    }
   }
 
   const handleReset = () => {
@@ -111,6 +116,8 @@ export default function AppClient({ listings, styles }: AppClientProps) {
   const listing = selectedSku ? listings.find((l: any) => l.sku === selectedSku) ?? null : null
   const badge = getReadinessBadge(form)
   const imagesGap = hasImagesGap(form)
+  const allSkus = listings.map((l: any) => l.sku)
+  const currentIdx = selectedSku ? allSkus.indexOf(selectedSku) : -1
 
   return (
     <div className="app">
@@ -184,6 +191,21 @@ export default function AppClient({ listings, styles }: AppClientProps) {
                 <span className={`ready-badge badge-${badge}`}>
                   {badge === 'green' ? 'Ready / 就绪' : badge === 'amber' ? 'Partial / 部分' : 'Incomplete / 未完成'}
                 </span>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:12}}>
+                  <button
+                    className="btn btn-outline"
+                    style={{padding:'4px 10px',fontSize:13}}
+                    disabled={currentIdx <= 0}
+                    onClick={() => currentIdx > 0 && setSelectedSku(allSkus[currentIdx - 1])}
+                  >◀</button>
+                  <span style={{fontSize:12,color:'#888'}}>{currentIdx + 1}/{allSkus.length}</span>
+                  <button
+                    className="btn btn-outline"
+                    style={{padding:'4px 10px',fontSize:13}}
+                    disabled={currentIdx >= allSkus.length - 1}
+                    onClick={() => currentIdx < allSkus.length - 1 && setSelectedSku(allSkus[currentIdx + 1])}
+                  >▶</button>
+                </div>
               </div>
 
               {/* Active tab */}

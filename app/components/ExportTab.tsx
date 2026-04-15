@@ -175,9 +175,16 @@ export default function ExportTab({ listing, form, listings }: ExportTabProps) {
                 <button
                   className="btn btn-primary"
                   onClick={handleBatchExport}
+                  disabled={!requiredReady}
+                  title={!requiredReady ? 'Fill in all required fields first' : undefined}
                 >
                   ↓ Batch Export 批量导出 ({siblings.length} SKUs)
                 </button>
+                {!requiredReady && (
+                  <div style={{ marginTop: 8, fontSize: 12, color: '#e85050' }}>
+                    Fill in required fields first / 请先填写必填字段
+                  </div>
+                )}
               </>
             )
           })()}

@@ -53,14 +53,14 @@ export default function KeywordSuggestions({ value, onChange }: Props) {
   const charColor = value.length > 249 ? 'text-red-500 font-medium' : 'text-gray-400'
 
   return (
-    <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-lg border border-gray-100">
+    <div className="flex flex-col gap-2 p-3 bg-neutral-800 rounded-lg border border-neutral-700">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500">关键词建议 — 点击添加</span>
+        <span className="text-xs font-medium text-neutral-400">关键词建议 — 点击添加</span>
         <span className={`text-xs ${charColor}`}>{value.length}/249</span>
       </div>
       {CATEGORIES.map((cat) => (
         <div key={cat.label} className="flex items-start gap-2">
-          <span className="text-xs text-gray-400 pt-0.5 w-20 flex-shrink-0 leading-5">
+          <span className="text-xs text-neutral-400 pt-0.5 w-20 flex-shrink-0 leading-5">
             {cat.emoji} {cat.label}
           </span>
           <div className="flex flex-wrap gap-1">
@@ -73,8 +73,8 @@ export default function KeywordSuggestions({ value, onChange }: Props) {
                   onClick={() => toggle(kw)}
                   className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
                     added
-                      ? 'bg-blue-100 border-blue-400 text-blue-700'
-                      : 'border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'bg-blue-900 border-blue-600 text-blue-300'
+                      : 'border-neutral-600 text-neutral-300 hover:border-blue-600 hover:text-blue-300 hover:bg-blue-900'
                   }`}
                 >
                   {kw}
