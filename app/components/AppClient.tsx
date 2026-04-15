@@ -159,28 +159,30 @@ export default function AppClient({ listings, styles }: AppClientProps) {
             <>
               {/* Product header */}
               <div className="prod-header">
-                {form.mainImage && (
-                  <img
-                    className="prod-thumb"
-                    src={form.mainImage}
-                    alt={form.itemName || listing.sku}
-                  />
-                )}
-                <div className="prod-meta">
-                  <div className="prod-title">
+                <div className="thumb">
+                  {form.mainImage ? (
+                    <img
+                      src={form.mainImage}
+                      alt={form.itemName || listing.sku}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : '📦'}
+                </div>
+                <div className="info">
+                  <h2>
                     {listing.parentSku ?? listing.sku}
                     {listing.color ? ` — ${listing.color}` : ''}
-                  </div>
-                  <div className="prod-detail">
-                    <span>SKU: <code>{listing.sku}</code></span>
-                    {form.price && <span> · £{form.price}</span>}
+                  </h2>
+                  <p>
+                    SKU: <code>{listing.sku}</code>
+                    {form.price && <> · £{form.price}</>}
                     {listing.parentSku && listing.parentSku !== listing.sku && (
-                      <span> · Parent: <code>{listing.parentSku}</code></span>
+                      <> · Parent: <code>{listing.parentSku}</code></>
                     )}
-                  </div>
+                  </p>
                 </div>
-                <span className={`readiness-badge rb-${badge}`}>
-                  {badge === 'green' ? 'Ready' : badge === 'amber' ? 'Partial' : 'Incomplete'}
+                <span className={`ready-badge badge-${badge}`}>
+                  {badge === 'green' ? 'Ready / 就绪' : badge === 'amber' ? 'Partial / 部分' : 'Incomplete / 未完成'}
                 </span>
               </div>
 
