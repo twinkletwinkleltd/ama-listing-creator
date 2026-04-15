@@ -1,16 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 
-// KeywordSuggestions is optional — import may fail on some environments
-let KeywordSuggestions: React.ComponentType<{ keywords: string; onChange: (v: string) => void }> | null = null
-try {
-  // Dynamic require so a missing file doesn't crash the module
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  KeywordSuggestions = require('../../components/KeywordSuggestions').default ?? null
-} catch {
-  // Not available — render keywords field alone
-}
+// KeywordSuggestions loaded lazily — won't crash if missing
+const KeywordSuggestions = lazy(() =>
+  import('../../components/KeywordSuggestions').catch(() => ({
+    default: () => null as any,
+  }))
+)
 
 interface InfoTabProps {
   form: Record<string, string>
@@ -227,12 +224,12 @@ export default function InfoTab({ form, onChange }: InfoTabProps) {
               value={form['keywords'] ?? ''}
               onChange={onChange}
             />
-            {KeywordSuggestions && (
+            <Suspense fallback={null}>
               <KeywordSuggestions
-                keywords={form['keywords'] ?? ''}
-                onChange={v => onChange('keywords', v)}
+                value={form['keywords'] ?? ''}
+                onChange={(v: string) => onChange('keywords', v)}
               />
-            )}
+            </Suspense>
           </div>
         </div>
       </div>
