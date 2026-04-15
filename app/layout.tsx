@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import AppSidebar from './components/AppSidebar'
 
 export const metadata: Metadata = {
-  title: 'Amazon Listing Creator',
+  title: 'Listing Creator 商品上架工具',
   description: 'Manage and edit Amazon product listings',
 }
 
@@ -13,19 +12,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="app-shell">
-          <div className="app-header">
-            <span>📦</span>
-            Amazon Listing Creator
-            <span className="app-header-badge">v1.0.0</span>
+        <div className="header">
+          <div className="logo">
+            Listing Creator
+            <span className="zh">商品上架工具</span>
           </div>
-          <div className="app-body">
-            <AppSidebar />
-            <div className="app-main">
-              {children}
-            </div>
-          </div>
+          <div className="spacer" />
+          <a
+            href="https://ordercleaner.twinkletwinkle.uk/apps"
+            className="back-link"
+          >
+            ← Back to Apps 返回
+          </a>
         </div>
+        {children}
       </body>
     </html>
   )
