@@ -68,6 +68,13 @@ export default function ExportTab({ listing, form, listings }: ExportTabProps) {
     downloadCsv(csv, `${parentSku}-batch-${new Date().toISOString().slice(0, 10)}.csv`)
   }
 
+  const handleExcelExport = () => {
+    const parentSku = listing.parentSku || listing.sku
+    // basePath is /apps/listing — server serves the xlsx under that prefix
+    const url = `/apps/listing/api/listings/export?parentSku=${encodeURIComponent(parentSku)}`
+    window.location.href = url
+  }
+
   const requiredReady  = REQUIRED_FIELDS.every(f  => Boolean(form[f.field]))
   const suggestedCount = SUGGESTED_FIELDS.filter(f => Boolean(form[f.field])).length
 
@@ -172,19 +179,31 @@ export default function ExportTab({ listing, form, listings }: ExportTabProps) {
                   <span style={{ fontFamily: 'monospace', color: '#e8e8e8' }}>{parentSku}</span>{' '}
                   with a parent row.
                 </p>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleBatchExport}
-                  disabled={!requiredReady}
-                  title={!requiredReady ? 'Fill in all required fields first' : undefined}
-                >
-                  ↓ Batch Export 批量导出 ({siblings.length} SKUs)
-                </button>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleBatchExport}
+                    disabled={!requiredReady}
+                    title={!requiredReady ? 'Fill in all required fields first' : undefined}
+                  >
+                    ↓ Batch CSV 批量导出 ({siblings.length} SKUs)
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleExcelExport}
+                    title="Download Amazon-uploadable .xlsx from saved server data"
+                  >
+                    ↓ Export Amazon Excel 导出 Amazon Excel
+                  </button>
+                </div>
                 {!requiredReady && (
                   <div style={{ marginTop: 8, fontSize: 12, color: '#e85050' }}>
                     Fill in required fields first / 请先填写必填字段
                   </div>
                 )}
+                <div style={{ marginTop: 8, fontSize: 11, color: '#666' }}>
+                  Note: Excel export pulls from saved server data (listings.json), not local drafts.
+                </div>
               </>
             )
           })()}

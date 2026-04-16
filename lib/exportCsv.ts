@@ -1,41 +1,12 @@
 /**
  * Shared CSV generation for Amazon flat file format (fptcustom template)
  * Used by both EditorClient (single export) and ListingsClient (batch export)
+ *
+ * The column map (`CSV_COLS`) lives in lib/amazonTemplate.ts so the XLSX
+ * export route can reuse it.
  */
 
-const TOTAL_COLS = 249
-
-const CSV_COLS: Array<{ idx: number; label: string; field: string; req?: boolean }> = [
-  { idx: 0,   label: 'Seller SKU',                  field: 'contribution_sku',            req: true },
-  { idx: 1,   label: 'Listing Action',              field: 'record_action',               req: true },
-  { idx: 2,   label: 'Product Type',                field: 'item_type_keyword',           req: true },
-  { idx: 3,   label: 'Item Name',                   field: 'item_name',                   req: true },
-  { idx: 4,   label: 'Brand Name',                  field: 'brand_name',                  req: true },
-  { idx: 18,  label: 'Item Condition',              field: 'condition_type',              req: true },
-  { idx: 44,  label: 'Quantity',                    field: 'quantity' },
-  { idx: 48,  label: 'Price',                       field: 'standard_price',              req: true },
-  { idx: 75,  label: 'Bullet Point 1',              field: 'bullet_point1' },
-  { idx: 76,  label: 'Bullet Point 2',              field: 'bullet_point2' },
-  { idx: 77,  label: 'Bullet Point 3',              field: 'bullet_point3' },
-  { idx: 78,  label: 'Bullet Point 4',              field: 'bullet_point4' },
-  { idx: 79,  label: 'Bullet Point 5',              field: 'bullet_point5' },
-  { idx: 80,  label: 'Generic Keywords',            field: 'generic_keywords' },
-  { idx: 91,  label: 'Color Map',                   field: 'color_map' },
-  { idx: 92,  label: 'Colour',                      field: 'color_name' },
-  { idx: 116, label: 'Magnification Strength',      field: 'magnification_strength' },
-  { idx: 117, label: 'Magnification Strength Unit', field: 'magnification_strength_unit' },
-  { idx: 160, label: 'Parentage Level',             field: 'parentage_level' },
-  { idx: 161, label: 'Parent SKU',                  field: 'parent_sku' },
-  { idx: 162, label: 'Variation Theme',             field: 'variation_theme' },
-  { idx: 241, label: 'Main Image URL',              field: 'main_image_url',              req: true },
-  { idx: 242, label: 'Image URL 2',                 field: 'other_image_url1' },
-  { idx: 243, label: 'Image URL 3',                 field: 'other_image_url2' },
-  { idx: 244, label: 'Image URL 4',                 field: 'other_image_url3' },
-  { idx: 245, label: 'Image URL 5',                 field: 'other_image_url4' },
-  { idx: 246, label: 'Image URL 6',                 field: 'other_image_url5' },
-  { idx: 247, label: 'Image URL 7',                 field: 'other_image_url6' },
-  { idx: 248, label: 'Image URL 8',                 field: 'other_image_url7' },
-]
+import { CSV_COLS, TOTAL_COLS, TEMPLATE_METADATA } from './amazonTemplate'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -61,7 +32,12 @@ function buildHeaderRows(): string[] {
     reqs[c.idx]   = c.req ? 'Required' : 'Optional'
   }
   return [
-    makeRow({ 0: 'TemplateType=fptcustom', 1: 'Version=2023.1116', 2: 'TemplateSignature=Q09SUkVDVElWRUVZRUdMQVNTRVM=', 3: 'HideTemplateHeaders=n' }),
+    makeRow({
+      0: TEMPLATE_METADATA.templateType,
+      1: TEMPLATE_METADATA.version,
+      2: TEMPLATE_METADATA.signature,
+      3: TEMPLATE_METADATA.hideHeaders,
+    }),
     makeRow({}),
     makeRow(labels),
     makeRow(fields),

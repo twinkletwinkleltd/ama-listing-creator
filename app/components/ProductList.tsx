@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ProductListProps {
   listings: any[];
@@ -37,6 +38,7 @@ function getStatus(listing: any): 'green' | 'amber' | 'red' {
 }
 
 export default function ProductList({ listings, styles, selectedSku, onSelect }: ProductListProps) {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -87,11 +89,10 @@ export default function ProductList({ listings, styles, selectedSku, onSelect }:
         </h3>
         <button
           className="btn-new-listing"
-          disabled
-          title="Coming soon — this feature is under development / 功能开发中"
-          style={{ opacity: 0.5, cursor: 'not-allowed' }}
+          onClick={() => router.push('/new-style')}
+          title="Create a new style in batch — parent + all color/strength variants"
         >
-          + New Listing <span className="zh">新建产品（开发中）</span>
+          + New Listing <span className="zh">新建款式</span>
         </button>
         <input
           className="search-box"

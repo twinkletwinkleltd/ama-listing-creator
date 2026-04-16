@@ -417,6 +417,25 @@ html, body {
 }
 .field input::placeholder,
 .field textarea::placeholder { color: #555; }
+
+/* ── Standalone text input (used in New Style Wizard) ───────────────────── */
+.text-input {
+  background: #353535;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  padding: 8px 11px;
+  font-size: 14px;
+  color: #e8e8e8;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.text-input:focus {
+  border-color: #555;
+  background: #3c3c3c;
+}
+.text-input::placeholder { color: #555; }
 .field input.warn { border-color: #e85050; }
 
 /* ── Action bar ── */
