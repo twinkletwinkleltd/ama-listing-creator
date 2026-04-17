@@ -20,6 +20,11 @@ import { getAllListings, type Listing } from '@/lib/listingStore'
 
 export const runtime = 'nodejs'
 
+// Max rows allowed in a single Excel export. Above this, return 413 with a
+// hint to filter by parentSku. Prevents OOM from accidental "export all"
+// when listings.json grows huge.
+const MAX_EXPORT_ROWS = 1000
+
 // ── Map Listing → row values keyed by Amazon column index ───────────────────
 
 function listingToRow(l: Listing): string[] {
@@ -113,6 +118,15 @@ export async function GET(request: NextRequest) {
     return new Response(
       JSON.stringify({ error: `No listings found for parentSku=${parentSku}` }),
       { status: 404, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
+  if (listings.length > MAX_EXPORT_ROWS) {
+    return new Response(
+      JSON.stringify({
+        error: `Too many listings to export at once: ${listings.length} > ${MAX_EXPORT_ROWS}. Filter by parentSku to narrow the result.`,
+      }),
+      { status: 413, headers: { 'Content-Type': 'application/json' } },
     )
   }
 

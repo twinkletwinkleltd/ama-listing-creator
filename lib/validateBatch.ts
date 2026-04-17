@@ -15,6 +15,14 @@ import type { SavedStyleData } from './listingStore'
 const PARENT_SKU_RE = /^[A-Za-z0-9_-]+$/
 const HTTP_URL_RE = /^https?:\/\//i
 
+// ── Batch size limits (defense against accidental or malicious huge inputs) ──
+// A real Amazon listing rarely has more than ~10 colors and ~10 strengths,
+// so 20×30=600 raw combinations is already 5x typical. Cap the final
+// child-SKU count at 500 to prevent OOM during XLSX export.
+export const MAX_COLORS = 20
+export const MAX_STRENGTHS = 30
+export const MAX_CHILD_SKUS = 500
+
 export interface ValidationError {
   field: string
   message: string
@@ -73,6 +81,11 @@ export function validateBatch(data: Partial<SavedStyleData>): ValidationResult {
   const colors = Array.isArray(data.colors) ? data.colors : []
   if (colors.length === 0) {
     errors.push({ field: 'colors', message: 'At least one color is required' })
+  } else if (colors.length > MAX_COLORS) {
+    errors.push({
+      field: 'colors',
+      message: `Too many colors (${colors.length}). Maximum allowed: ${MAX_COLORS}`,
+    })
   }
 
   const seenColorCodes = new Set<string>()
@@ -125,6 +138,11 @@ export function validateBatch(data: Partial<SavedStyleData>): ValidationResult {
   const strengths = Array.isArray(data.strengths) ? data.strengths : []
   if (strengths.length === 0) {
     errors.push({ field: 'strengths', message: 'At least one strength is required' })
+  } else if (strengths.length > MAX_STRENGTHS) {
+    errors.push({
+      field: 'strengths',
+      message: `Too many strengths (${strengths.length}). Maximum allowed: ${MAX_STRENGTHS}`,
+    })
   } else {
     strengths.forEach((s, i) => {
       if (typeof s !== 'number' || !isFinite(s) || s < 0) {
@@ -138,6 +156,17 @@ export function validateBatch(data: Partial<SavedStyleData>): ValidationResult {
         break
       }
       seen.add(s)
+    }
+  }
+
+  // ── Total child SKU count cap ─────────────────────────────────────
+  if (colors.length > 0 && strengths.length > 0) {
+    const total = colors.length * strengths.length
+    if (total > MAX_CHILD_SKUS) {
+      errors.push({
+        field: 'colors',
+        message: `Too many child SKUs (${colors.length} colors × ${strengths.length} strengths = ${total}). Maximum allowed: ${MAX_CHILD_SKUS}`,
+      })
     }
   }
 
