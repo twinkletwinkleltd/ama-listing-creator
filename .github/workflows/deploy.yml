@@ -36,7 +36,7 @@ jobs:
             sudo mkdir -p "$BACKUP_DIR"
             sudo chown portal-system:portal-system "$BACKUP_DIR"
             if [ -d .next/standalone ]; then
-              SHA=$(git rev-parse --short HEAD)
+              SHA=$(sudo -u portal-system git rev-parse --short HEAD)
               sudo -u portal-system cp -r .next/standalone "$BACKUP_DIR/$SHA" 2>/dev/null || true
               sudo -u portal-system bash -c "ls -t \"$BACKUP_DIR\" 2>/dev/null | tail -n +6 | xargs -r -I{} rm -rf \"$BACKUP_DIR/{}\""
             fi
@@ -58,7 +58,7 @@ jobs:
             # Health check — fail deploy if service did not come up.
             sleep 3
             sudo systemctl is-active ama-listing.service
-            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3002/)
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3002/apps/listing)
             echo "ama-listing HTTP: ${code}"
             echo "${code}" | grep -qE "^(200|302|307)$" || \
               { echo "ERROR: expected 200/302/307, got ${code}"; exit 1; }
