@@ -45,10 +45,17 @@ jobs:
             sudo -u portal-system npm install --no-audit --no-fund
             sudo -u portal-system npm run build
 
-            # Copy data/ into standalone build (existing deploy.sh convention).
-            if [ -d data ] && [ -d .next/standalone ]; then
-              sudo -u portal-system cp -r data .next/standalone/
+            # Copy static assets into standalone bundle so CSS/JS chunks serve.
+            # Without this, HTML loads but /_next/static/* returns 404.
+            sudo -u portal-system mkdir -p .next/standalone/.next
+            sudo -u portal-system cp -r .next/static .next/standalone/.next/static
+            if [ -d public ]; then
+              sudo -u portal-system cp -r public .next/standalone/public
             fi
+
+            # Data directory is persistent at project root (AMA_LISTING_DATA_ROOT
+            # env var in systemd unit points there). Do NOT copy data/ into the
+            # standalone bundle — that would clobber live data on every deploy.
 
             # Refresh systemd unit from repo (in case it changed).
             sudo cp deploy/ama-listing.service /etc/systemd/system/ama-listing.service
@@ -62,4 +69,21 @@ jobs:
             echo "ama-listing HTTP: ${code}"
             echo "${code}" | grep -qE "^(200|302|307)$" || \
               { echo "ERROR: expected 200/302/307, got ${code}"; exit 1; }
+
+            # Static asset health check — HTML 200 is not enough; verify a
+            # referenced /_next/static/* asset actually loads, otherwise the
+            # page renders as unstyled raw HTML.
+            HTML_BODY=$(curl -s http://127.0.0.1:3002/apps/listing)
+            ASSET=$(echo "$HTML_BODY" | grep -oE "/apps/listing/_next/static/[^\"]+\.(css|js)" | head -1)
+            if [ -z "$ASSET" ]; then
+              ASSET=$(echo "$HTML_BODY" | grep -oE "/_next/static/[^\"]+\.(css|js)" | head -1)
+            fi
+            if [ -n "$ASSET" ]; then
+              ASSET_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:3002${ASSET}")
+              echo "ama-listing static asset ${ASSET}: ${ASSET_CODE}"
+              [ "$ASSET_CODE" = "200" ] || \
+                { echo "ERROR: static asset ${ASSET} returned ${ASSET_CODE}"; exit 1; }
+            else
+              echo "WARN: no /_next/static/* reference found in HTML — cannot verify static assets"
+            fi
           '

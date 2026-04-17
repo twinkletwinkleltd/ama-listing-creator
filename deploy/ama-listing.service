@@ -13,6 +13,9 @@ RestartSec=5
 Environment=NODE_ENV=production
 Environment=PORT=3002
 Environment=HOSTNAME=127.0.0.1
+# Persistent data dir lives at project root (outside the standalone bundle that
+# gets rebuilt on every deploy). listingStore.getDataRoot() reads this.
+Environment=AMA_LISTING_DATA_ROOT=/opt/portal-system/apps/ama-listing-creator/data
 
 [Install]
 WantedBy=multi-user.target
