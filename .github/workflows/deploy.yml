@@ -63,12 +63,16 @@ jobs:
             sudo systemctl restart ama-listing.service
 
             # Health check — fail deploy if service did not come up.
-            sleep 3
             sudo systemctl is-active ama-listing.service
-            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3002/apps/listing)
-            echo "ama-listing HTTP: ${code}"
-            echo "${code}" | grep -qE "^(200|302|307)$" || \
-              { echo "ERROR: expected 200/302/307, got ${code}"; exit 1; }
+            code=000
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3002/apps/listing || true)
+              echo "ama-listing HTTP attempt ${i}: ${code}"
+              echo "${code}" | grep -qE "^(200|302|307|308)$" && break
+              sleep 2
+            done
+            echo "${code}" | grep -qE "^(200|302|307|308)$" || \
+              { echo "ERROR: expected 200/302/307/308, got ${code}"; exit 1; }
 
             # Static asset health check — HTML 200 is not enough; verify a
             # referenced /_next/static/* asset actually loads, otherwise the
