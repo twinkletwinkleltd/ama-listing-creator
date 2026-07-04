@@ -57,9 +57,9 @@ the atomic rename.
 
 ## Auth
 
-`middleware.ts` gates every route under `/apps/listing/*` via the
+`proxy.ts` gates every route under `/apps/listing/*` via the
 `X-Portal-User` header (set by nginx from the portal session cookie).
 Local dev uses `NEXT_PUBLIC_DEV_BYPASS_AUTH=true`. Never add a new API
 route that bypasses the middleware unless you've thought carefully
-about the threat model — the matcher in `middleware.ts` already catches
+about the threat model — the matcher in `proxy.ts` already catches
 everything except `_next/static`, `_next/image`, and `favicon`.

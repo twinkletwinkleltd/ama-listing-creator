@@ -1,11 +1,13 @@
 'use client'
 
 import { generateSingleCsv, generateBatchCsv, downloadCsv } from '../../lib/exportCsv'
+import type { DraftData, EditorFormData, ListingData } from '../../lib/exportCsv'
+import type { Listing } from '../../lib/listingStore'
 
 interface ExportTabProps {
-  listing: any | null
+  listing: Listing | null
   form: Record<string, string>
-  listings: any[]
+  listings: Listing[]
 }
 
 // Fields to check for readiness
@@ -36,6 +38,55 @@ function StatusIcon({ ok }: { ok: boolean }) {
   )
 }
 
+function formToEditorData(form: Record<string, string>): EditorFormData {
+  return {
+    itemName: form.itemName ?? '',
+    brand: form.brand ?? '',
+    listingAction: form.listingAction ?? '',
+    price: form.price ?? '',
+    quantity: form.quantity ?? '',
+    parentage: form.parentage ?? '',
+    parentSku: form.parentSku ?? '',
+    variationTheme: form.variationTheme ?? '',
+    bullet1: form.bullet1 ?? '',
+    bullet2: form.bullet2 ?? '',
+    bullet3: form.bullet3 ?? '',
+    bullet4: form.bullet4 ?? '',
+    bullet5: form.bullet5 ?? '',
+    description: form.description ?? '',
+    keywords: form.keywords ?? '',
+    colorMap: form.colorMap ?? '',
+    color: form.color ?? '',
+    strength: form.strength ?? '',
+    mainImage: form.mainImage ?? '',
+    image2: form.image2 ?? '',
+    image3: form.image3 ?? '',
+    image4: form.image4 ?? '',
+    image5: form.image5 ?? '',
+    image6: form.image6 ?? '',
+    image7: form.image7 ?? '',
+    image8: form.image8 ?? '',
+  }
+}
+
+function listingToExportData(listing: Listing): ListingData {
+  return {
+    sku: listing.sku,
+    itemName: listing.itemName ?? '',
+    price: listing.price ?? '',
+    quantity: listing.quantity ?? '',
+    color: listing.color ?? '',
+    colorMap: listing.colorMap ?? '',
+    strength: listing.strength ?? '',
+    parentage: listing.parentage,
+    parentSku: listing.parentSku,
+    variationTheme: listing.variationTheme ?? '',
+    mainImage: listing.mainImage ?? '',
+    image2: listing.image2 ?? '',
+    image3: listing.image3 ?? '',
+  }
+}
+
 export default function ExportTab({ listing, form, listings }: ExportTabProps) {
   if (!listing) {
     return (
@@ -47,24 +98,26 @@ export default function ExportTab({ listing, form, listings }: ExportTabProps) {
   }
 
   const handleSingleExport = () => {
-    const csv = generateSingleCsv(form as any, listing.sku)
+    const csv = generateSingleCsv(formToEditorData(form), listing.sku)
     downloadCsv(csv, `${listing.sku}-${new Date().toISOString().slice(0, 10)}.csv`)
   }
 
   const handleBatchExport = () => {
     const parentSku = listing.parentSku || listing.sku
-    const siblings = listings.filter((l: any) => l.parentSku === parentSku)
+    const siblings = listings
+      .filter(l => l.parentSku === parentSku)
+      .map(listingToExportData)
 
-    const getDraft = (sku: string) => {
+    const getDraft = (sku: string): DraftData | null => {
       try {
         const raw = localStorage.getItem(`draft:${sku}`)
-        return raw ? JSON.parse(raw) : null
+        return raw ? JSON.parse(raw) as DraftData : null
       } catch {
         return null
       }
     }
 
-    const csv = generateBatchCsv(parentSku, siblings as any, getDraft)
+    const csv = generateBatchCsv(parentSku, siblings, getDraft)
     downloadCsv(csv, `${parentSku}-batch-${new Date().toISOString().slice(0, 10)}.csv`)
   }
 
@@ -171,7 +224,7 @@ export default function ExportTab({ listing, form, listings }: ExportTabProps) {
         <div className="group-body">
           {(() => {
             const parentSku = listing.parentSku || listing.sku
-            const siblings  = listings.filter((l: any) => l.parentSku === parentSku)
+            const siblings  = listings.filter(l => l.parentSku === parentSku)
             return (
               <>
                 <p style={{ fontSize: 13, color: '#888', marginTop: 0, marginBottom: 12 }}>
