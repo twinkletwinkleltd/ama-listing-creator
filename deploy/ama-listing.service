@@ -5,6 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=portal-system
+Group=portal-system
+UMask=0077
 WorkingDirectory=/opt/portal-system/apps/ama-listing-creator/.next/standalone
 ExecStart=/usr/bin/node server.js
 Restart=on-failure

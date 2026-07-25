@@ -60,7 +60,7 @@ someone typed a price on the Parent row.
 - **Filter by parentSku**: export or list can be scoped to one style.
 - **Per-SKU draft editor** (EditorClient) for tweaking bullets/keywords and
   generating a single-listing CSV.
-- **Auth-guarded** by `middleware.ts`: requires `X-Portal-User` header set
+- **Auth-guarded** by `proxy.ts`: requires `X-Portal-User` header set
   by the portal's nginx layer; allowlist of portal usernames.
 
 ## 不做的事 / Non-Goals

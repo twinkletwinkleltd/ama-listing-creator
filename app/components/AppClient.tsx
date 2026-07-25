@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+/* eslint-disable @next/next/no-img-element */
+
+import { useState } from 'react'
 import ProductList from './ProductList'
 import InfoTab from './InfoTab'
 import ImagesTab from './ImagesTab'
 import SpecsTab from './SpecsTab'
 import ExportTab from './ExportTab'
+import type { Listing } from '../../lib/listingStore'
 
 interface AppClientProps {
-  listings: any[]
-  styles: any[]
+  listings: Listing[]
 }
 
 // Fields extracted from a listing object into the form
@@ -42,24 +44,15 @@ function formatTime(d: Date): string {
   return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
-export default function AppClient({ listings, styles }: AppClientProps) {
+export default function AppClient({ listings }: AppClientProps) {
   const [selectedSku, setSelectedSku] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'info' | 'images' | 'specs' | 'export'>('info')
   const [form, setForm] = useState<Record<string, string>>({})
   const [lastSaved, setLastSaved] = useState<string>('')
 
-  // When selectedSku changes, load listing defaults then overlay localStorage draft
-  useEffect(() => {
-    if (!selectedSku) {
-      setForm({})
-      setLastSaved('')
-      return
-    }
-
-    const listing = listings.find((l: any) => l.sku === selectedSku)
-    if (!listing) return
-
-    // Build base from listing fields
+  const buildFormForSku = (sku: string): Record<string, string> | null => {
+    const listing = listings.find(l => l.sku === sku)
+    if (!listing) return null
     const base: Record<string, string> = {}
     for (const field of LISTING_FIELDS) {
       base[field] = listing[field] !== undefined && listing[field] !== null
@@ -69,18 +62,25 @@ export default function AppClient({ listings, styles }: AppClientProps) {
 
     // Overlay draft from localStorage (draft takes priority)
     try {
-      const raw = localStorage.getItem('draft:' + selectedSku)
+      const raw = localStorage.getItem('draft:' + sku)
       if (raw) {
-        const draft = JSON.parse(raw)
+        const draft = JSON.parse(raw) as Record<string, string>
         Object.assign(base, draft)
       }
     } catch (e) {
       console.error('Failed to load draft:', e)
     }
 
-    setForm(base)
+    return base
+  }
+
+  const handleSelectSku = (sku: string) => {
+    const nextForm = buildFormForSku(sku)
+    if (!nextForm) return
+    setSelectedSku(sku)
+    setForm(nextForm)
     setLastSaved('')
-  }, [selectedSku, listings])
+  }
 
   const handleChange = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -101,7 +101,7 @@ export default function AppClient({ listings, styles }: AppClientProps) {
     if (!selectedSku) return
     localStorage.removeItem('draft:' + selectedSku)
     // Reload from listing defaults only
-    const listing = listings.find((l: any) => l.sku === selectedSku)
+    const listing = listings.find(l => l.sku === selectedSku)
     if (!listing) return
     const base: Record<string, string> = {}
     for (const field of LISTING_FIELDS) {
@@ -113,19 +113,18 @@ export default function AppClient({ listings, styles }: AppClientProps) {
     setLastSaved('')
   }
 
-  const listing = selectedSku ? listings.find((l: any) => l.sku === selectedSku) ?? null : null
+  const listing = selectedSku ? listings.find(l => l.sku === selectedSku) ?? null : null
   const badge = getReadinessBadge(form)
   const imagesGap = hasImagesGap(form)
-  const allSkus = listings.map((l: any) => l.sku)
+  const allSkus = listings.map(l => l.sku)
   const currentIdx = selectedSku ? allSkus.indexOf(selectedSku) : -1
 
   return (
     <div className="app">
       <ProductList
         listings={listings}
-        styles={styles}
         selectedSku={selectedSku}
-        onSelect={setSelectedSku}
+        onSelect={handleSelectSku}
       />
 
       <div className="right-panel">
@@ -196,14 +195,14 @@ export default function AppClient({ listings, styles }: AppClientProps) {
                     className="btn btn-outline"
                     style={{padding:'4px 10px',fontSize:13}}
                     disabled={currentIdx <= 0}
-                    onClick={() => currentIdx > 0 && setSelectedSku(allSkus[currentIdx - 1])}
+                    onClick={() => currentIdx > 0 && handleSelectSku(allSkus[currentIdx - 1])}
                   >◀</button>
                   <span style={{fontSize:12,color:'#888'}}>{currentIdx + 1}/{allSkus.length}</span>
                   <button
                     className="btn btn-outline"
                     style={{padding:'4px 10px',fontSize:13}}
                     disabled={currentIdx >= allSkus.length - 1}
-                    onClick={() => currentIdx < allSkus.length - 1 && setSelectedSku(allSkus[currentIdx + 1])}
+                    onClick={() => currentIdx < allSkus.length - 1 && handleSelectSku(allSkus[currentIdx + 1])}
                   >▶</button>
                 </div>
               </div>
@@ -216,7 +215,7 @@ export default function AppClient({ listings, styles }: AppClientProps) {
                 <ImagesTab form={form} onChange={handleChange} />
               )}
               {activeTab === 'specs' && (
-                <SpecsTab listing={listing} />
+                <SpecsTab key={listing.sku} listing={listing} />
               )}
               {activeTab === 'export' && (
                 <ExportTab listing={listing} form={form} listings={listings} />

@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+/* eslint-disable @next/next/no-img-element */
+
+import { useCallback, useState, useRef } from 'react'
+import type { Listing } from '../../lib/listingStore'
 
 interface SpecsTabProps {
-  listing: any | null
+  listing: Listing | null
 }
 
 interface DimData {
@@ -20,6 +23,27 @@ const PRESETS: Record<string, DimData> = {
   RX224:  { lensWidth: '52', lensHeight: '40', bridgeWidth: '16', armLength: '140', totalWidth: '138', totalHeight: '44', weight: '28' },
   TK223:  { lensWidth: '50', lensHeight: '38', bridgeWidth: '18', armLength: '138', totalWidth: '135', totalHeight: '42', weight: '26' },
   '2PR75': { lensWidth: '54', lensHeight: '42', bridgeWidth: '14', armLength: '142', totalWidth: '140', totalHeight: '46', weight: '30' },
+}
+
+const EMPTY_DIMS: DimData = {
+  lensWidth: '', lensHeight: '', bridgeWidth: '',
+  armLength: '', totalWidth: '', totalHeight: '', weight: '',
+}
+
+function detectPreset(sku: string | undefined): string {
+  if (!sku) return ''
+  return Object.keys(PRESETS).find(key => sku.includes(key)) ?? ''
+}
+
+function loadDimsForPreset(preset: string): DimData {
+  if (!preset) return { ...EMPTY_DIMS }
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem(`dimensions-${preset}`)
+    if (saved) {
+      try { return JSON.parse(saved) as DimData } catch { /* ignore */ }
+    }
+  }
+  return PRESETS[preset] ? { ...PRESETS[preset] } : { ...EMPTY_DIMS }
 }
 
 const DIM_FIELDS: { key: keyof DimData; label: string; unit: string }[] = [
@@ -39,13 +63,11 @@ const TEMPLATES = {
 }
 
 export default function SpecsTab({ listing }: SpecsTabProps) {
+  const initialPreset = detectPreset(listing?.sku)
   const [frontImg, setFrontImg]   = useState<string | null>(null)
   const [sideImg,  setSideImg]    = useState<string | null>(null)
-  const [preset,   setPreset]     = useState('')
-  const [dims,     setDims]       = useState<DimData>({
-    lensWidth: '', lensHeight: '', bridgeWidth: '',
-    armLength: '', totalWidth: '', totalHeight: '', weight: '',
-  })
+  const [preset,   setPreset]     = useState(initialPreset)
+  const [dims,     setDims]       = useState<DimData>(() => loadDimsForPreset(initialPreset))
   const [template,  setTemplate]  = useState<'white' | 'dark' | 'amazon'>('white')
   const [generated, setGenerated] = useState(false)
 
@@ -53,23 +75,10 @@ export default function SpecsTab({ listing }: SpecsTabProps) {
   const frontInputRef = useRef<HTMLInputElement>(null)
   const sideInputRef  = useRef<HTMLInputElement>(null)
 
-  // Auto-detect preset from listing sku
-  useEffect(() => {
-    if (!listing?.sku) return
-    const sku = listing.sku as string
-    for (const key of Object.keys(PRESETS)) {
-      if (sku.includes(key)) {
-        handlePreset(key)
-        break
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listing?.sku])
-
-  const handlePreset = (p: string) => {
+  const handlePreset = useCallback((p: string) => {
     setPreset(p)
-    if (PRESETS[p]) setDims(PRESETS[p])
-  }
+    setDims(loadDimsForPreset(p))
+  }, [])
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>, setImg: (s: string) => void) => {
     const file = e.target.files?.[0]
@@ -147,7 +156,6 @@ export default function SpecsTab({ listing }: SpecsTabProps) {
     loadAndDraw(frontImg, 0, 100, 900, 1200, () => {
       loadAndDraw(sideImg, 900, 100, 700, 700, () => {
         const lw = parseFloat(dims.lensWidth)   || 52
-        const lh = parseFloat(dims.lensHeight)  || 40
         const bw = parseFloat(dims.bridgeWidth) || 16
         const al = parseFloat(dims.armLength)   || 140
         const tw = parseFloat(dims.totalWidth)  || 138
@@ -202,14 +210,6 @@ export default function SpecsTab({ listing }: SpecsTabProps) {
     localStorage.setItem(`dimensions-${preset}`, JSON.stringify(dims))
     alert('尺寸数据已保存 / Dimensions saved')
   }
-
-  useEffect(() => {
-    if (!preset) return
-    const saved = localStorage.getItem(`dimensions-${preset}`)
-    if (saved) {
-      try { setDims(JSON.parse(saved)) } catch { /* ignore */ }
-    }
-  }, [preset])
 
   return (
     <div>

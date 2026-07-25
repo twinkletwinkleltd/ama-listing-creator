@@ -15,6 +15,8 @@
 import fs from 'fs'
 import path from 'path'
 
+const DEFAULT_DATA_ROOT = path.join(/*turbopackIgnore: true*/ process.cwd(), 'data')
+
 // ───────────────────────── Types ────────────────────────────────────────────
 
 export interface Listing {
@@ -115,30 +117,30 @@ export interface SavedStyleData {
 export function getDataRoot(): string {
   const envRoot = process.env.AMA_LISTING_DATA_ROOT
   if (envRoot && envRoot.trim()) return envRoot
-  return path.join(process.cwd(), 'data')
+  return DEFAULT_DATA_ROOT
 }
 
 function listingsPath(): string {
-  return path.join(getDataRoot(), 'listings.json')
+  return path.join(/*turbopackIgnore: true*/ getDataRoot(), 'listings.json')
 }
 
 function stylesPath(): string {
-  return path.join(getDataRoot(), 'styles.json')
+  return path.join(/*turbopackIgnore: true*/ getDataRoot(), 'styles.json')
 }
 
 // ───────────────────────── I/O helpers ──────────────────────────────────────
 
 function ensureDataRoot() {
-  const root = getDataRoot()
-  if (!fs.existsSync(root)) {
-    fs.mkdirSync(root, { recursive: true })
+  const root = /*turbopackIgnore: true*/ getDataRoot()
+  if (!fs.existsSync(/*turbopackIgnore: true*/ root)) {
+    fs.mkdirSync(/*turbopackIgnore: true*/ root, { recursive: true })
   }
 }
 
 function readJsonSafe<T>(file: string, fallback: T): T {
   try {
-    if (!fs.existsSync(file)) return fallback
-    const raw = fs.readFileSync(file, 'utf-8')
+    if (!fs.existsSync(/*turbopackIgnore: true*/ file)) return fallback
+    const raw = fs.readFileSync(/*turbopackIgnore: true*/ file, 'utf-8')
     return JSON.parse(raw) as T
   } catch (err) {
     console.error(`[listingStore] Failed to read ${file}:`, err)
@@ -149,8 +151,8 @@ function readJsonSafe<T>(file: string, fallback: T): T {
 function writeJsonAtomic(file: string, data: unknown): void {
   ensureDataRoot()
   const tmp = file + '.tmp'
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8')
-  fs.renameSync(tmp, file)
+  fs.writeFileSync(/*turbopackIgnore: true*/ tmp, JSON.stringify(data, null, 2), 'utf-8')
+  fs.renameSync(/*turbopackIgnore: true*/ tmp, /*turbopackIgnore: true*/ file)
 }
 
 // ───────────────────────── Public API ───────────────────────────────────────

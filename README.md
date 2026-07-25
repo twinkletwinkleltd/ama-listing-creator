@@ -20,7 +20,7 @@ NEXT_PUBLIC_DEV_BYPASS_AUTH=true npm run dev
 # → open http://localhost:3000/apps/listing
 ```
 
-`NEXT_PUBLIC_DEV_BYPASS_AUTH=true` tells `middleware.ts` to skip the
+`NEXT_PUBLIC_DEV_BYPASS_AUTH=true` tells `proxy.ts` to skip the
 `X-Portal-User` allowlist check so you can work without the portal's
 nginx auth layer in front of the app.
 

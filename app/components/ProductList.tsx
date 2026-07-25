@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import type { Listing } from '../../lib/listingStore';
 
 interface ProductListProps {
-  listings: any[];
-  styles: any[];
+  listings: Listing[];
   selectedSku: string | null;
   onSelect: (sku: string) => void;
 }
@@ -27,7 +27,7 @@ function colorToHex(color: string): string {
   return COLOR_HEX[key] ?? '#666';
 }
 
-function getStatus(listing: any): 'green' | 'amber' | 'red' {
+function getStatus(listing: Listing): 'green' | 'amber' | 'red' {
   const hasName = !!(listing.itemName && listing.itemName.trim());
   if (!hasName) return 'red';
   const hasAll =
@@ -37,7 +37,7 @@ function getStatus(listing: any): 'green' | 'amber' | 'red' {
   return hasAll ? 'green' : 'amber';
 }
 
-export default function ProductList({ listings, styles, selectedSku, onSelect }: ProductListProps) {
+export default function ProductList({ listings, selectedSku, onSelect }: ProductListProps) {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -54,7 +54,7 @@ export default function ProductList({ listings, styles, selectedSku, onSelect }:
 
   // Group by parentSku, preserving insertion order
   const groups = useMemo(() => {
-    const map = new Map<string, any[]>();
+    const map = new Map<string, Listing[]>();
     for (const listing of filtered) {
       const parent = listing.parentSku ?? 'Unknown';
       if (!map.has(parent)) map.set(parent, []);

@@ -32,7 +32,7 @@ C4Container
     Container(node, "Next.js standalone server", "node server.js on :3002", "Pages + API routes")
 
     Container_Boundary(app, "Next.js app") {
-        Component(mw, "middleware.ts", "Edge", "Auth guard")
+        Component(mw, "proxy.ts", "Edge", "Auth guard")
         Component(pages, "App Router pages", "RSC + client", "/, /new-style, /listings, /editor/[sku]")
         Component(api, "API routes", "nodejs runtime", "/api/listings, /api/styles,<br/>/api/listings/batch, /api/listings/export")
     }
@@ -67,7 +67,7 @@ flowchart TD
         W --> |Step 5: Save| POST[fetch POST<br/>/apps/listing/api/listings/batch]
     end
 
-    POST --> MW[middleware.ts<br/>check X-Portal-User]
+    POST --> MW[proxy.ts<br/>check X-Portal-User]
     MW -->|401| Unauth[401 JSON]
     MW -->|ok| RT[app/api/listings/batch/route.ts]
 
@@ -80,7 +80,7 @@ flowchart TD
 
     R200 --> W
     W --> |trigger anchor click| DL[GET /api/listings/export<br/>?parentSku=...]
-    DL --> MW2[middleware.ts]
+    DL --> MW2[proxy.ts]
     MW2 --> EXP[app/api/listings/export/route.ts]
     EXP --> LS[getAllListings → filter]
     LS --> SORT[sortParentFirst]
@@ -100,7 +100,7 @@ sequenceDiagram
     participant U as Operator
     participant W as NewStyleWizard (browser)
     participant NG as nginx
-    participant MW as middleware.ts
+    participant MW as proxy.ts
     participant B as POST /api/listings/batch
     participant V as validateBatch
     participant G as generateListingsFromStyle

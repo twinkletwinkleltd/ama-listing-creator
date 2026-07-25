@@ -7,7 +7,7 @@ error codes, auth, limits, SKU rules, and technology choices.
 ## 1. API Schema
 
 All routes live under `basePath=/apps/listing` (configured in
-`next.config.ts`). Every request is filtered by `middleware.ts` — see
+`next.config.ts`). Every request is filtered by `proxy.ts` — see
 §4 Authentication.
 
 ### `GET /apps/listing/api/listings`
@@ -219,7 +219,7 @@ route concatenates header rows with data rows and feeds the matrix to
 
 ## 4. 认证 / Authentication
 
-Handled in `middleware.ts`. Every request to `/apps/listing/*` (pages
+Handled in `proxy.ts`. Every request to `/apps/listing/*` (pages
 and APIs) is gated.
 
 - **Header:** `X-Portal-User` — injected by nginx from the portal's

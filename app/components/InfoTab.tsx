@@ -2,10 +2,20 @@
 
 import { useState, lazy, Suspense } from 'react'
 
+interface KeywordSuggestionProps {
+  value: string
+  onChange: (v: string) => void
+}
+
+function EmptyKeywordSuggestions(props: KeywordSuggestionProps) {
+  void props
+  return <></>
+}
+
 // KeywordSuggestions loaded lazily — won't crash if missing
 const KeywordSuggestions = lazy(() =>
   import('../../components/KeywordSuggestions').catch(() => ({
-    default: () => null as any,
+    default: EmptyKeywordSuggestions,
   }))
 )
 
